@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.env
+
+# Node
+node_modules/
+.next/
+out/
+
+# DB files
+*.db
+pdf_hash.txt
+page_hashes.json
+
+# OS
+.DS_Store
+Thumbs.db
