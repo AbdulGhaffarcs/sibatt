@@ -14,10 +14,10 @@ slotfinder/
 
 ## Team
 
-| Dev | Area |
-|-----|------|
-| Abdul (@AbdulGhaffarcs) | Extraction pipeline · DB · Teacher & Room search UI |
-| Qasim (@qasimio) | SQLite export · Admin API · Timetable view · Deploy |
+| Dev |
+|-----|
+| Abdul (@AbdulGhaffarcs) | 
+| Qasim (@qasimio) |
 
 ## Quick start
 

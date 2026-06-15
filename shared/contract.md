@@ -1,7 +1,7 @@
 # JSON Contract
 
 Flat record shape both sides agree on.
-Abdul writes it. Qasim reads it.
+
 
 ```json
 {
