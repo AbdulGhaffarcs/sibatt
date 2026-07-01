@@ -1,0 +1,18 @@
+{
+  "name": "SlotFinder — Sukkur IBA",
+  "short_name": "SlotFinder",
+  "description": "Search your timetable by section, teacher, or room.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f4f5",
+  "theme_color": "#f4f4f5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

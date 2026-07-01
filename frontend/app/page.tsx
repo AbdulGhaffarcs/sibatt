@@ -5,7 +5,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { loadDB, getAllEntries, getAllTeachers, getAllRooms } from "@/lib/db"
+import { loadDB, getAllEntries, getAllRooms } from "@/lib/db"
 import { buildTeacherIndex }                                 from "@/lib/search"
 import DayView                                               from "@/components/timetable/DayView"
 import TeacherSearch                                         from "@/components/search/TeacherSearch"
@@ -61,9 +61,9 @@ export default function Home() {
   const sectionEntries: ClassEntry[] = section
     ? entries.filter(
         (e) =>
-          (e as any).program  === section.program  &&
-          (e as any).semester === section.semester &&
-          e.section           === section.section
+          e.program  === section.program  &&
+          e.semester === section.semester &&
+          e.section  === section.section
       )
     : []
 
@@ -114,7 +114,7 @@ export default function Home() {
 
   // ── main views ─────────────────────────────────────────────────────────────
   return (
-    <main className="flex min-h-screen flex-col items-center px-4 pt-6 pb-24">
+    <main className="flex min-h-screen flex-col items-center px-4 pt-6 pb-20">
 
       {/* timetable view */}
       {view === "timetable" && (

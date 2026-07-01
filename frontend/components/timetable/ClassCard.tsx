@@ -5,9 +5,13 @@ export interface ClassEntry {
   id: number
   course: string
   teacher_code: string
+  teacher_name: string
   room: string
   building: string
   section: string
+  program: string
+  semester: number
+  term: string
   slot: number
   start_time: string
   end_time: string
@@ -41,19 +45,19 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
       <div className="w-px bg-zinc-100" />
 
       {/* content */}
-      <div className="flex flex-1 flex-col gap-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[14px] font-medium text-zinc-900 leading-tight">
+      <div className="flex flex-1 flex-col gap-1 min-w-0 overflow-hidden">
+        <div className="flex items-center gap-2">
+          <span className="text-[14px] font-medium text-zinc-900 leading-tight truncate">
             {entry.course}
           </span>
           {isNext && (
-            <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+            <span className="flex-none rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
               Up next
             </span>
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5">
           {/* room or online badge */}
           {entry.is_online ? (
             <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">

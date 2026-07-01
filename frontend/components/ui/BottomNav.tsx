@@ -50,6 +50,7 @@ export default function BottomNav({ active, onChange }: BottomNavProps) {
         <button
           key={key}
           onClick={() => onChange(key)}
+          aria-current={active === key ? "page" : undefined}
           className={`flex flex-1 flex-col items-center gap-1 py-3 transition-colors ${
             active === key
               ? "text-zinc-900"

@@ -6,6 +6,7 @@
 import { useMemo, useState } from "react"
 import type { ClassEntry }   from "@/components/timetable/ClassCard"
 import type { Section }      from "@/app/page"
+import { SEM_ROMAN }         from "@/lib/constants"
 
 interface SectionPickerProps {
   entries:  ClassEntry[]
@@ -26,8 +27,8 @@ export default function SectionPicker({
     const list: Section[] = []
 
     entries.forEach((e) => {
-      const program  = (e as any).program  as string
-      const semester = (e as any).semester as number
+      const program  = e.program
+      const semester = e.semester
       const section  = e.section
 
       if (!program || !semester || !section) return
@@ -67,8 +68,6 @@ export default function SectionPicker({
     return Object.entries(map)
   }, [filtered])
 
-  const SEM_ROMAN = ["I","II","III","IV","V","VI","VII","VIII"]
-
   return (
     <div className="flex flex-col w-full max-w-sm rounded-2xl border border-zinc-200 bg-white overflow-hidden">
 
@@ -96,6 +95,7 @@ export default function SectionPicker({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="BSCS, BBA, semester…"
+            aria-label="Search sections by program, semester, or section"
             className="flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-400"
             autoFocus
           />
@@ -115,25 +115,25 @@ export default function SectionPicker({
                 {program}
               </div>
               {secs.map((s, i) => (
-                <div key={`${s.semester}-${s.section}`}>
+                  <div key={`${program}-${s.semester}-${s.section}`}>
                   <button
                     onClick={() => onSelect(s)}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-zinc-50 transition-colors"
+                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-zinc-50 transition-colors gap-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 font-mono text-[11px] font-medium text-zinc-700">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-zinc-100 font-mono text-[11px] font-medium text-zinc-700">
                         {s.section}
                       </div>
-                      <div>
-                        <div className="text-[14px] font-medium text-zinc-900">
+                      <div className="min-w-0">
+                        <div className="text-[14px] font-medium text-zinc-900 truncate">
                           {program} — Semester {SEM_ROMAN[(s.semester - 1)] ?? s.semester}
                         </div>
-                        <div className="text-[12px] text-zinc-500">
+                        <div className="text-[12px] text-zinc-500 truncate">
                           Section {s.section}
                         </div>
                       </div>
                     </div>
-                    <svg className="h-4 w-4 text-zinc-400" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg className="h-4 w-4 flex-none text-zinc-400" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M6 4l4 4-4 4"/>
                     </svg>
                   </button>

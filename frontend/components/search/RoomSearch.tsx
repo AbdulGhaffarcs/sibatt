@@ -6,14 +6,13 @@
 import { useState, useMemo } from "react"
 import type { ClassEntry }    from "@/components/timetable/ClassCard"
 import ClassCard              from "@/components/timetable/ClassCard"
+import DayTabs                from "@/components/ui/DayTabs"
+import { DAY_FULL_KEYS }      from "@/lib/constants"
 
 interface RoomSearchProps {
   entries: ClassEntry[]
   rooms:   string[]
 }
-
-const DAY_KEYS = ["Mo", "Tu", "We", "Th", "Fr"]
-const DAY_FULL = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
   const [query,    setQuery]    = useState("")
@@ -29,10 +28,18 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
     return rooms.filter((r) => r.toLowerCase().includes(q))
   }, [rooms, query])
 
+  const roomCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    entries.forEach((e) => {
+      counts[e.room] = (counts[e.room] ?? 0) + 1
+    })
+    return counts
+  }, [entries])
+
   // ── room schedule view ────────────────────────────────────────────────────
   if (selected) {
     const dayEntries = entries
-      .filter((e) => e.room === selected && e.day === DAY_FULL[dayIdx])
+      .filter((e) => e.room === selected && e.day === DAY_FULL_KEYS[dayIdx])
       .sort((a, b) => a.slot - b.slot)
 
     return (
@@ -52,25 +59,11 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
         </div>
 
         {/* day tabs */}
-        <div className="flex gap-1">
-          {DAY_KEYS.map((key, i) => (
-            <button
-              key={key}
-              onClick={() => setDayIdx(i)}
-              className={`flex-1 rounded-lg py-2 text-[12px] font-medium transition-colors ${
-                dayIdx === i
-                  ? "bg-zinc-900 text-white"
-                  : "border border-zinc-200 text-zinc-500 hover:bg-zinc-50"
-              }`}
-            >
-              {key}
-            </button>
-          ))}
-        </div>
+        <DayTabs dayIdx={dayIdx} onChange={setDayIdx} />
 
         {dayEntries.length === 0 ? (
           <div className="py-10 text-center text-[13px] text-zinc-400">
-            Room is free all day on {DAY_FULL[dayIdx]}
+            Room is free all day on {DAY_FULL_KEYS[dayIdx]}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -97,6 +90,7 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Room code…"
+          aria-label="Search rooms by code"
           className="flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-400"
           autoFocus
         />
@@ -109,7 +103,7 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
           </div>
         ) : (
           filteredRooms.map((room) => {
-            const count = entries.filter((e) => e.room === room).length
+            const count = roomCounts[room] ?? 0
             return (
               <button
                 key={room}

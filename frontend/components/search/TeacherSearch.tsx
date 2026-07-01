@@ -6,6 +6,8 @@
 import { useState, useMemo }     from "react"
 import type { ClassEntry }        from "@/components/timetable/ClassCard"
 import ClassCard                  from "@/components/timetable/ClassCard"
+import DayTabs                    from "@/components/ui/DayTabs"
+import { DAY_FULL_KEYS }               from "@/lib/constants"
 
 export interface Teacher {
   code:    string
@@ -16,9 +18,6 @@ export interface Teacher {
 interface TeacherSearchProps {
   teachers: Teacher[]
 }
-
-const DAY_KEYS  = ["Mo", "Tu", "We", "Th", "Fr"]
-const DAY_FULL  = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 export default function TeacherSearch({ teachers }: TeacherSearchProps) {
   const [query,    setQuery]    = useState("")
@@ -41,7 +40,7 @@ export default function TeacherSearch({ teachers }: TeacherSearchProps) {
   // ── schedule detail view ──────────────────────────────────────────────────
   if (selected) {
     const dayEntries = selected.entries
-      .filter((e) => e.day === DAY_FULL[dayIdx])
+      .filter((e) => e.day === DAY_FULL_KEYS[dayIdx])
       .sort((a, b) => a.slot - b.slot)
 
     return (
@@ -66,25 +65,11 @@ export default function TeacherSearch({ teachers }: TeacherSearchProps) {
         </div>
 
         {/* day tabs */}
-        <div className="flex gap-1">
-          {DAY_KEYS.map((key, i) => (
-            <button
-              key={key}
-              onClick={() => setDayIdx(i)}
-              className={`flex-1 rounded-lg py-2 text-[12px] font-medium transition-colors ${
-                dayIdx === i
-                  ? "bg-zinc-900 text-white"
-                  : "border border-zinc-200 text-zinc-500 hover:bg-zinc-50"
-              }`}
-            >
-              {key}
-            </button>
-          ))}
-        </div>
+        <DayTabs dayIdx={dayIdx} onChange={setDayIdx} />
 
         {dayEntries.length === 0 ? (
           <div className="py-10 text-center text-[13px] text-zinc-400">
-            No classes on {DAY_FULL[dayIdx]}
+            No classes on {DAY_FULL_KEYS[dayIdx]}
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -111,6 +96,7 @@ export default function TeacherSearch({ teachers }: TeacherSearchProps) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Name or code…"
+          aria-label="Search teachers by name or code"
           className="flex-1 bg-transparent text-[14px] text-zinc-900 outline-none placeholder:text-zinc-400"
           autoFocus
         />

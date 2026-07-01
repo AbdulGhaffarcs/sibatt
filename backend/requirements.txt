@@ -1,6 +1,9 @@
 pymupdf
 fastapi
-uvicorn
+uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 python-dotenv
+python-multipart
+pytest
+httpx
