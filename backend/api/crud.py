@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import or_
 from sqlalchemy.orm import Session, joinedload
 
+from backend.api.auth import verify_api_key
 from backend.db import get_db
 from backend.db.models import (
     Course,
@@ -21,7 +22,7 @@ from backend.db.models import (
     Timeslot,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_api_key)])
 
 
 # ── Schemas ──────────────────────────────────────────────────────────────────

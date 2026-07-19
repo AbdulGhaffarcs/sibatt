@@ -6,6 +6,7 @@ export interface ClassEntry {
   course: string
   teacher_code: string
   teacher_name: string
+  teacher_dept: string
   room: string
   building: string
   section: string

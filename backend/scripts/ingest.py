@@ -7,6 +7,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 
 import fitz
 
@@ -162,10 +163,19 @@ def main() -> None:
     parser.add_argument("pdf_path", help="Path to the timetable PDF")
     parser.add_argument("--year", type=int, default=2025)
     parser.add_argument("--semester", default="Fall")
+    parser.add_argument("--export", action="store_true", help="Also export to frontend SQLite bundle after ingest")
     args = parser.parse_args()
 
     stats = ingest_pdf(args.pdf_path, year=args.year, semester=args.semester)
     print(stats)
+
+    if args.export:
+        from backend.db.export import export_to_sqlite
+        from backend.db import SessionLocal
+        output = Path(__file__).resolve().parents[2] / "frontend" / "public" / "timetable.db"
+        with SessionLocal() as db:
+            path = export_to_sqlite(db, output)
+        print(f"Exported to {path}")
 
 
 if __name__ == "__main__":

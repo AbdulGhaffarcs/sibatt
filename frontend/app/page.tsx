@@ -6,17 +6,17 @@
 
 import { useEffect, useState } from "react"
 import { loadDB, getAllEntries, getAllRooms } from "@/lib/db"
-import { buildTeacherIndex }                                 from "@/lib/search"
+import { buildCourseIndex }                                  from "@/lib/search"
 import DayView                                               from "@/components/timetable/DayView"
-import TeacherSearch                                         from "@/components/search/TeacherSearch"
+import CourseSearch                                          from "@/components/search/CourseSearch"
 import RoomSearch                                            from "@/components/search/RoomSearch"
 import SectionPicker                                         from "@/components/timetable/SectionPicker"
 import BottomNav                                             from "@/components/ui/BottomNav"
 import type { ClassEntry }                                   from "@/components/timetable/ClassCard"
-import type { Teacher }                                      from "@/components/search/TeacherSearch"
+import type { Course }                                       from "@/components/search/CourseSearch"
 
 // ── view states ──────────────────────────────────────────────────────────────
-type View = "timetable" | "teachers" | "rooms"
+type View = "timetable" | "courses" | "rooms"
 
 // ── section shape ────────────────────────────────────────────────────────────
 export interface Section {
@@ -30,7 +30,7 @@ export default function Home() {
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
   const [entries,  setEntries]  = useState<ClassEntry[]>([])
-  const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [courses,  setCourses]  = useState<Course[]>([])
   const [rooms,    setRooms]    = useState<string[]>([])
 
   // ── ui state ───────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export default function Home() {
         await loadDB("/timetable.db")
         const rawEntries = getAllEntries()
         setEntries(rawEntries)
-        setTeachers(buildTeacherIndex(rawEntries))
+        setCourses(buildCourseIndex(rawEntries))
         setRooms(getAllRooms())
       } catch (e) {
         setError("Could not load timetable data. Try refreshing.")
@@ -143,9 +143,9 @@ export default function Home() {
         )
       )}
 
-      {/* teacher search view */}
-      {view === "teachers" && (
-        <TeacherSearch teachers={teachers} />
+      {/* course search view */}
+      {view === "courses" && (
+        <CourseSearch courses={courses} />
       )}
 
       {/* room search view */}

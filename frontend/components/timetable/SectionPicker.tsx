@@ -109,20 +109,21 @@ export default function SectionPicker({
             No sections found
           </div>
         ) : (
-          grouped.map(([program, secs]) => (
+          grouped.map(([program, secs], gi) => (
             <div key={program}>
-              <div className="px-4 pt-3 pb-1 font-mono text-[10px] uppercase tracking-widest text-zinc-400">
+              {gi > 0 && <div className="mx-4 h-px bg-zinc-100" />}
+              <div className="px-4 pt-4 pb-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
                 {program}
               </div>
               {secs.map((s, i) => (
-                  <div key={`${program}-${s.semester}-${s.section}`}>
+                <div key={`${program}-${s.semester}-${s.section}`}>
                   <button
                     onClick={() => onSelect(s)}
                     className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-zinc-50 transition-colors gap-3"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-zinc-100 font-mono text-[11px] font-medium text-zinc-700">
-                        {s.section}
+                        {s.section.slice(0, 2)}
                       </div>
                       <div className="min-w-0">
                         <div className="text-[14px] font-medium text-zinc-900 truncate">

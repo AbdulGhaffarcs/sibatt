@@ -13,6 +13,7 @@ export interface FullEntry extends ClassEntry {
   semester:     number
   term:         string
   teacher_name: string
+  teacher_dept: string
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,6 +52,7 @@ export function getAllEntries(): FullEntry[] {
       c.name        AS course,
       t.code        AS teacher_code,
       t.name        AS teacher_name,
+      t.dept        AS teacher_dept,
       r.code        AS room,
       r.building,
       ts.slot_no    AS slot,
@@ -78,6 +80,7 @@ export function getAllEntries(): FullEntry[] {
     course:       r.course       as string,
     teacher_code: r.teacher_code as string,
     teacher_name: r.teacher_name as string,
+    teacher_dept: r.teacher_dept as string,
     room:         r.room         as string,
     building:     r.building     as string,
     slot:         r.slot         as number,

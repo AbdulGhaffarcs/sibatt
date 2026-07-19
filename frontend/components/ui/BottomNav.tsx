@@ -1,9 +1,9 @@
 // frontend/components/ui/BottomNav.tsx
-// Fixed bottom navigation — timetable, teachers, rooms.
+// Fixed bottom navigation — timetable, courses, rooms.
 
 "use client"
 
-type View = "timetable" | "teachers" | "rooms"
+type View = "timetable" | "courses" | "rooms"
 
 interface BottomNavProps {
   active:   View
@@ -22,12 +22,12 @@ const TABS: { key: View; label: string; icon: React.ReactNode }[] = [
     ),
   },
   {
-    key: "teachers",
-    label: "Teachers",
+    key: "courses",
+    label: "Courses",
     icon: (
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-5 w-5">
-        <circle cx="10" cy="7" r="3.5"/>
-        <path d="M3 18c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+        <path d="M12 2l4 4-4 4M8 14l-4 4 4 4"/>
+        <path d="M4 6h16M4 14h16"/>
       </svg>
     ),
   },

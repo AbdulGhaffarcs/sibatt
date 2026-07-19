@@ -6,15 +6,15 @@ describe("BottomNav", () => {
   it("renders all three tabs", () => {
     render(<BottomNav active="timetable" onChange={vi.fn()} />)
     expect(screen.getByText("Timetable")).toBeInTheDocument()
-    expect(screen.getByText("Teachers")).toBeInTheDocument()
+    expect(screen.getByText("Courses")).toBeInTheDocument()
     expect(screen.getByText("Rooms")).toBeInTheDocument()
   })
 
   it("calls onChange when a tab is clicked", () => {
     const onChange = vi.fn()
     render(<BottomNav active="timetable" onChange={onChange} />)
-    fireEvent.click(screen.getByText("Teachers"))
-    expect(onChange).toHaveBeenCalledWith("teachers")
+    fireEvent.click(screen.getByText("Courses"))
+    expect(onChange).toHaveBeenCalledWith("courses")
   })
 
   it("marks the active tab", () => {

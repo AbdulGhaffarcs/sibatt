@@ -8,6 +8,7 @@ const mockEntry: ClassEntry = {
   course: "Data Structures",
   teacher_code: "AK",
   teacher_name: "Dr. Khan",
+  teacher_dept: "CS",
   room: "R-305",
   building: "B-II",
   section: "A",

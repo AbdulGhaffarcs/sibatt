@@ -26,7 +26,12 @@ def _get_engine():
     global _engine
     if _engine is None:
         from sqlalchemy import create_engine
-        _engine = create_engine(DATABASE_URL, echo=False)
+        kwargs = {}
+        if DATABASE_URL.startswith("sqlite"):
+            kwargs["connect_args"] = {"check_same_thread": False}
+            from sqlalchemy.pool import StaticPool
+            kwargs["poolclass"] = StaticPool
+        _engine = create_engine(DATABASE_URL, echo=False, **kwargs)
     return _engine
 
 
