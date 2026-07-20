@@ -18,3 +18,7 @@ page_hashes.json
 # OS
 .DS_Store
 Thumbs.db
+DEV2_ONBOARDING.md
+# Logs
+logs/
+*.log
