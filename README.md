@@ -1,10 +1,10 @@
 # SlotFinder
 
-A modern timetable search engine for Sukkur IBA University. Search and filter class schedules by section, teacher, or room. Built with a Python backend and Next.js frontend, optimized for mobile-first experience.
+A modern timetable search engine for Sukkur IBA University. Search and filter class schedules by section, course, or room. Built with a Python backend and Next.js frontend, optimized for mobile-first experience.
 
 ## 🎯 Features
 
-- **Multi-filter search**: Find classes by section, instructor, or classroom
+- **Multi-filter search**: Find classes by section, courses, or classroom
 - **Mobile-first design**: Responsive UI optimized for all devices
 - **Offline-capable**: SQLite database bundled for static site performance
 - **PDF-powered**: Automatic timetable extraction from institutional PDFs
