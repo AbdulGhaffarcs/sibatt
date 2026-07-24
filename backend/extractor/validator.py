@@ -127,6 +127,10 @@ def _parse_page_header(page: fitz.Page) -> tuple[str, list[str]]:
         # Remove extra spaces
         title_text = re.sub(r"\s+", " ", title_text).strip()
 
+        parsed = _parse_timetable_title(title_text)
+        if parsed:
+            return parsed
+
         # Pattern: BBA-I(A,B) or BS-VII(CS)-D
         m = _SECTION_RE.match(title_text)
         if m:
@@ -169,6 +173,98 @@ def _parse_page_header(page: fitz.Page) -> tuple[str, list[str]]:
             return "ADDITIONAL", []
 
     return "", []
+
+
+def _split_section_codes(value: str) -> list[str]:
+    """Split timetable section labels without treating a department as a section."""
+    return [
+        part.strip()
+        for part in re.split(r"[,&/]", value.replace(" and ", ","))
+        if part.strip()
+    ]
+
+
+def _parse_timetable_title(title: str) -> tuple[str, list[str]] | None:
+    """Parse a timetable title while retaining department/specialisation identity.
+
+    Examples:
+      ``BBA-I(A,B)``          → (``BBA``, [``A``, ``B``])
+      ``BS-III(CS,AI)-B``     → (``BS (CS, AI)``, [``B``])
+      ``BS-I(A&F)-(A,B,C)``  → (``BS (A&F)``, [``A``, ``B``, ``C``])
+
+    A previous parser interpreted ``CS`` or ``AI`` as the section.  That
+    merged unrelated cohort pages and created conflicting entries.
+    """
+    if title.startswith("Additional Course "):
+        return "ADDITIONAL", [title.removeprefix("Additional Course ").strip()]
+
+    spaced_section = re.match(r"^([A-Za-z. ]+?)\s*-\s*([IVXLC]+)\s*\(([^)]+)\)$", title)
+    if spaced_section:
+        return spaced_section.group(1).replace(".", "").strip(), _split_section_codes(spaced_section.group(3))
+
+    # Titles where the department is before the semester, e.g. ``BE(CSE)-I``
+    # and ``MS (CS,SE)-III``.  These pages describe one cohort, so use a
+    # stable General section instead of inserting an empty section label.
+    specialised = re.match(
+        r"^([A-Za-z. ]+?)\s*\(([^)]+)\)\s*-\s*([IVXLC]+)(?:/[IVXLC]+)?$",
+        title,
+    )
+    if specialised:
+        program = specialised.group(1).replace(".", "").strip()
+        speciality = re.sub(r"\s*,\s*", ", ", specialised.group(2).strip())
+        return f"{program} ({speciality})", ["General"]
+
+    # ``BS-Media-I`` and ``ME-EE-II`` encode the department between program
+    # and semester.
+    departmental = re.match(r"^([A-Za-z.]+)\s*-\s*([A-Za-z]+)\s*-\s*([IVXLC]+)(?:/[IVXLC]+)?$", title)
+    if departmental:
+        return f"{departmental.group(1).replace('.', '')} ({departmental.group(2)})", ["General"]
+
+    departmental_spaced = re.match(r"^([A-Za-z.]+)\s*-\s*([A-Za-z]+)\s+([IVXLC]+)$", title)
+    if departmental_spaced:
+        return f"{departmental_spaced.group(1).replace('.', '')} ({departmental_spaced.group(2)})", ["General"]
+
+    no_semester = re.match(r"^([A-Za-z.]+)(?:\s*-\s*|\s+)\(?([A-Za-z]+)\)?$", title)
+    if no_semester:
+        return f"{no_semester.group(1).replace('.', '')} ({no_semester.group(2)})", ["General"]
+
+    # Plain single-cohort titles, such as ``B.Ed - VII`` or ``M.Phil-II``.
+    plain = re.match(r"^([A-Za-z. ]+?)\s*-\s*([IVXLC]+)$", title)
+    if plain:
+        return plain.group(1).replace(".", "").strip(), ["General"]
+
+    match = re.match(r"^([A-Za-z.]+)\s*-\s*([IVXLC]+)(.*)$", title)
+    if not match:
+        return None
+
+    program = match.group(1).replace(".", "").strip()
+    remainder = match.group(3).strip()
+    groups = re.findall(r"\(([^)]+)\)", remainder)
+    outside = re.sub(r"\([^)]*\)", "", remainder).strip(" -")
+
+    specialization = ""
+    sections: list[str] = []
+    if outside:
+        # A trailing code belongs to the section; preceding parenthesis groups
+        # identify the department/specialisation.
+        sections = _split_section_codes(outside)
+        if groups:
+            specialization = groups[0]
+    elif len(groups) >= 2:
+        # ``BS-I(A&F)-(A,B,C)``: first group is the department, final group
+        # contains the section letters.
+        specialization = groups[0]
+        sections = _split_section_codes(groups[-1])
+    elif groups:
+        # ``BBA-I(A,B)`` and ``MBA-I(CS)`` are section groups.
+        sections = _split_section_codes(groups[0])
+    else:
+        return None
+
+    if specialization:
+        specialization = re.sub(r"\s*,\s*", ", ", specialization.strip())
+        program = f"{program} ({specialization})"
+    return program, sections
 
 
 def _extract_semester_from_page(page: fitz.Page) -> int:
@@ -711,10 +807,24 @@ def classify_cells(
                 min_dist = dist
                 assigned_slot = slot_no
 
+        lower_text = text.lower()
+        if (
+            ("sukkur" in lower_text and ("university" in lower_text or "iba" in lower_text))
+            or "timetable generated" in lower_text
+            or "asc timetables" in lower_text
+        ):
+            continue
+
         section_letter = _extract_section_letter(text)
         content_text = _strip_section_letter(text)
 
-        if not section_letter and sections_from_header:
+        # A page with one cohort must use its title's section.  Cell text may
+        # start with a teacher initial or a course fragment, neither of which
+        # is a section label.  On multi-section pages, only accept labels that
+        # appear in the title.
+        if len(sections_from_header) == 1:
+            section_letter = sections_from_header[0]
+        elif sections_from_header and section_letter not in sections_from_header:
             section_letter = sections_from_header[0]
 
         if not assigned_day or not assigned_slot:
@@ -728,6 +838,16 @@ def classify_cells(
 
         parsed = parse_cell_text(content_text)
         start_time, end_time = _SLOT_MAP.get(assigned_slot, ("", ""))
+
+        # Keep the class visible, but make incomplete source cells reviewable
+        # through the admin flagged-cells endpoint instead of inventing a room.
+        if not parsed["room"] and parsed["is_online"] != "1":
+            result.flagged.append(FlaggedCell(
+                raw_text=text,
+                cell_bbox=json.dumps(cell),
+                flags="missing_room",
+                page_no=page_no,
+            ))
 
         entry = EntryData(
             program=program,

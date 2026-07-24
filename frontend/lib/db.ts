@@ -20,10 +20,20 @@ export interface FullEntry extends ClassEntry {
 let db: any = null
 
 export async function loadDB(path: string): Promise<void> {
-  // Dynamic import keeps sql.js out of the SSR bundle
+  // Start both downloads immediately. Loading the database only after sql.js
+  // initialises adds an unnecessary round trip to the first screen.
+  const databaseResponse = fetch(path)
+
+  // Dynamic import keeps sql.js out of the SSR bundle.
   const initSqlJs = (await import("sql.js")).default
-  const SQL = await initSqlJs({ locateFile: () => "/sql-wasm.wasm" })
-  const buf = await fetch(path).then((r) => r.arrayBuffer())
+  const [SQL, response] = await Promise.all([
+    initSqlJs({ locateFile: () => "/sql-wasm.wasm" }),
+    databaseResponse,
+  ])
+  if (!response.ok) {
+    throw new Error(`Could not load timetable database (${response.status})`)
+  }
+  const buf = await response.arrayBuffer()
   db = new SQL.Database(new Uint8Array(buf))
 }
 

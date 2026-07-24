@@ -1,10 +1,9 @@
 // public/sw.js
 // Minimal service worker: cache-first for static assets, network-first for navigation.
 
-const CACHE_NAME = "slotfinder-v1"
+const CACHE_NAME = "slotfinder-v3"
 const STATIC_ASSETS = [
   "/",
-  "/timetable.db",
   "/sql-wasm.wasm",
   "/favicon.svg",
   "/manifest.json",
@@ -42,7 +41,8 @@ self.addEventListener("fetch", (event) => {
     return
   }
 
-  // Static assets: cache-first
+  // Static assets (including the versioned timetable bundle): cache-first.
+  // Changing its `?v=` value in the app fetches a newly generated database.
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached

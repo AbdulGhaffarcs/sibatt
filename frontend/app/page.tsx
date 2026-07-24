@@ -15,6 +15,10 @@ import BottomNav                                             from "@/components/
 import type { ClassEntry }                                   from "@/components/timetable/ClassCard"
 import type { Course }                                       from "@/components/search/CourseSearch"
 
+// Bump this whenever the generated SQLite bundle changes.  The query string
+// prevents an installed service worker from serving an older timetable.
+const TIMETABLE_DB_VERSION = "2025-fall-6"
+
 // ── view states ──────────────────────────────────────────────────────────────
 type View = "timetable" | "courses" | "rooms"
 
@@ -42,7 +46,7 @@ export default function Home() {
   useEffect(() => {
     async function init() {
       try {
-        await loadDB("/timetable.db")
+        await loadDB(`/timetable.db?v=${TIMETABLE_DB_VERSION}`)
         const rawEntries = getAllEntries()
         setEntries(rawEntries)
         setCourses(buildCourseIndex(rawEntries))

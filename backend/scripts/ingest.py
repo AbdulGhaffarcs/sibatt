@@ -30,14 +30,21 @@ from backend.extractor.parser import parse_page
 from backend.extractor.validator import classify_cells
 
 
-def _get_or_create(db, model, defaults: dict, unique_filter: dict):
+def _get_or_create(db, model, defaults: dict, unique_filter: dict, cache: dict | None = None):
     """Get existing row or create a new one."""
+    cache_key = tuple(sorted(unique_filter.items()))
+    if cache is not None and cache_key in cache:
+        return cache[cache_key]
     instance = db.query(model).filter_by(**unique_filter).first()
     if instance:
+        if cache is not None:
+            cache[cache_key] = instance
         return instance
     instance = model(**defaults)
     db.add(instance)
     db.flush()
+    if cache is not None:
+        cache[cache_key] = instance
     return instance
 
 
@@ -45,11 +52,15 @@ def ingest_pdf(
     pdf_path: str,
     year: int = 2025,
     semester: str = "Fall",
+    force: bool = False,
+    replace_term: bool = True,
 ) -> dict:
     """Full pipeline: load PDF → extract → validate → upsert to DB."""
     init_db()
 
-    doc = load_pdf(pdf_path)
+    # The hash cache is useful for scheduled imports, but a corrected parser
+    # must be able to reprocess the same source document.
+    doc = fitz.open(pdf_path) if force else load_pdf(pdf_path)
     if doc is None:
         return {"status": "skipped", "reason": "same hash, no changes"}
 
@@ -63,8 +74,16 @@ def ingest_pdf(
     }
 
     with SessionLocal() as db:
+        entity_caches: dict[type, dict] = {
+            Program: {}, Section: {}, Course: {}, Teacher: {}, Room: {},
+        }
         seed_timeslots(db)
         term = seed_term(db, year, semester)
+
+        if replace_term:
+            db.query(Entry).filter_by(term_id=term.id).delete(synchronize_session=False)
+            db.query(FlaggedCell).filter_by(term_id=term.id).delete(synchronize_session=False)
+            db.flush()
 
         for page_no in range(doc.page_count):
             page = doc[page_no]
@@ -93,37 +112,42 @@ def ingest_pdf(
                     db, Program,
                     {"name": entry_data.program},
                     {"name": entry_data.program},
+                    entity_caches[Program],
                 )
                 section = _get_or_create(
                     db, Section,
                     {"program_id": program.id, "semester": entry_data.semester, "section": entry_data.section},
                     {"program_id": program.id, "semester": entry_data.semester, "section": entry_data.section},
+                    entity_caches[Section],
                 )
                 course = _get_or_create(
                     db, Course,
                     {"name": entry_data.course},
                     {"name": entry_data.course},
+                    entity_caches[Course],
                 )
                 teacher = _get_or_create(
                     db, Teacher,
                     {"code": entry_data.teacher_code, "name": entry_data.teacher_code, "dept": ""},
                     {"code": entry_data.teacher_code},
+                    entity_caches[Teacher],
                 )
                 room = _get_or_create(
                     db, Room,
                     {"code": entry_data.room, "building": entry_data.building},
                     {"code": entry_data.room},
+                    entity_caches[Room],
                 )
                 timeslot = db.query(Timeslot).filter_by(slot_no=entry_data.slot).first()
                 if not timeslot:
                     continue
 
+                # One section can have only one class in a timetable slot.
+                # Using all descriptive fields here allowed parser mistakes to
+                # create multiple conflicting cards for the same day and slot.
                 existing = db.query(Entry).filter_by(
                     term_id=term.id,
                     section_id=section.id,
-                    course_id=course.id,
-                    teacher_id=teacher.id,
-                    room_id=room.id,
                     timeslot_id=timeslot.id,
                     day=entry_data.day,
                 ).first()
@@ -164,9 +188,17 @@ def main() -> None:
     parser.add_argument("--year", type=int, default=2025)
     parser.add_argument("--semester", default="Fall")
     parser.add_argument("--export", action="store_true", help="Also export to frontend SQLite bundle after ingest")
+    parser.add_argument("--force", action="store_true", help="Reprocess the PDF even when its source hash is unchanged")
+    parser.add_argument("--append", action="store_true", help="Keep existing term entries instead of replacing them")
     args = parser.parse_args()
 
-    stats = ingest_pdf(args.pdf_path, year=args.year, semester=args.semester)
+    stats = ingest_pdf(
+        args.pdf_path,
+        year=args.year,
+        semester=args.semester,
+        force=args.force,
+        replace_term=not args.append,
+    )
     print(stats)
 
     if args.export:

@@ -107,13 +107,19 @@ def extract_grid(page: fitz.Page) -> list[dict]:
         vertical_by_x.setdefault(x, []).append((y0, y1))
 
     cells: list[dict] = []
-    for x0, x1 in zip(xs, xs[1:]):
-        for y0, y1 in zip(ys, ys[1:]):
+    for y0, y1 in zip(ys, ys[1:]):
+        # A PDF may contain header-only vertical rules.  Treating every x
+        # coordinate as a boundary then splits a real cell into invalid pieces
+        # and drops its text (as happened to BBA-I(A) Pakistan Studies).
+        # For each row, use only vertical rules that actually span that row.
+        row_boundaries = [
+            x for x in xs
+            if _covers(vertical_by_x.get(x, []), y0, y1)
+        ]
+        for x0, x1 in zip(row_boundaries, row_boundaries[1:]):
             if (
                 _covers(horizontal_by_y.get(y0, []), x0, x1)
                 and _covers(horizontal_by_y.get(y1, []), x0, x1)
-                and _covers(vertical_by_x.get(x0, []), y0, y1)
-                and _covers(vertical_by_x.get(x1, []), y0, y1)
             ):
                 cells.append({"x0": float(x0), "y0": float(y0), "x1": float(x1), "y1": float(y1)})
 

@@ -1,0 +1,23 @@
+[
+  {
+    "day": "Friday",
+    "slot": 2,
+    "course": "Pakistan Studies",
+    "room": "R-206",
+    "teacher_code": "YAS"
+  },
+  {
+    "day": "Friday",
+    "slot": 3,
+    "course": "Islamic Studies",
+    "room": "R-206",
+    "teacher_code": "PK"
+  },
+  {
+    "day": "Friday",
+    "slot": 4,
+    "course": "Islamic Studies",
+    "room": "R-206",
+    "teacher_code": "PK"
+  }
+]

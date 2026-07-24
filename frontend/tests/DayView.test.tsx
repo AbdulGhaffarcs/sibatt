@@ -52,10 +52,34 @@ describe("DayView", () => {
     expect(screen.queryByText("OS")).not.toBeInTheDocument()
   })
 
+  it("renders both consecutive periods when the same course occupies two slots", () => {
+    const fridayEntries: ClassEntry[] = [
+      { ...mockEntries[0], id: 9, course: "Islamic Studies", day: "Friday", slot: 3, start_time: "11:10", end_time: "12:00" },
+      { ...mockEntries[0], id: 12, course: "Islamic Studies", day: "Friday", slot: 4, start_time: "12:10", end_time: "13:00" },
+    ]
+    vi.setSystemTime(new Date("2025-09-19T08:00:00")) // Friday
+    render(<DayView section={mockSection} entries={fridayEntries} onChangeSection={vi.fn()} />)
+    expect(screen.getAllByText("Islamic Studies")).toHaveLength(2)
+    expect(screen.getByText("11:10")).toBeInTheDocument()
+    expect(screen.getByText("12:10")).toBeInTheDocument()
+  })
+
   it("shows empty state when no classes on the selected day", () => {
     const wedEntries = mockEntries.filter((e) => e.day === "Friday")
     render(<DayView section={mockSection} entries={wedEntries} onChangeSection={vi.fn()} />)
     expect(screen.getByText(/No classes/)).toBeInTheDocument()
+  })
+
+  it("marks a class as up next only during the five minutes before it starts", () => {
+    vi.setSystemTime(new Date("2025-09-15T11:06:00"))
+    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    expect(screen.getByText("Up next")).toBeInTheDocument()
+  })
+
+  it("does not mark an upcoming class too early", () => {
+    vi.setSystemTime(new Date("2025-09-15T10:30:00"))
+    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    expect(screen.queryByText("Up next")).not.toBeInTheDocument()
   })
 
   it("calls onChangeSection when Change button is clicked", () => {

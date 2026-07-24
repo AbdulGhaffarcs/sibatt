@@ -20,6 +20,7 @@ from backend.extractor.validator import (
     _extract_semester_from_page,
     _fix_word_splits,
     _parse_page_header,
+    _parse_timetable_title,
     _strip_embedded_section,
     classify_cells,
     parse_cell_text,
@@ -177,6 +178,49 @@ class TestPageHeaderParsing(unittest.TestCase):
                 break
         finally:
             doc.close()
+
+    def test_specialised_page_title_keeps_department_and_section_separate(self):
+        self.assertEqual(
+            _parse_timetable_title("BS-III(CS,AI)-B"),
+            ("BS (CS, AI)", ["B"]),
+        )
+
+
+class TestFall2025RegressionFixture(unittest.TestCase):
+    """Regression coverage for the first-column loss reported by users."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pdf = Path(__file__).resolve().parents[2] / "fall2025.pdf"
+        if not cls.pdf.exists():
+            raise unittest.SkipTest("fall2025.pdf not found")
+
+    def test_bba_i_a_friday_fixture(self):
+        from backend.extractor.grid import extract_grid
+        from backend.extractor.parser import parse_page
+
+        expected = json.loads(
+            (Path(__file__).parent / "fixtures" / "bba_i_a_friday.json").read_text()
+        )
+        document = fitz.open(self.pdf)
+        try:
+            page = document[0]
+            result = classify_cells(parse_page(page, extract_grid(page)), page=page, term="Fall-2025")
+        finally:
+            document.close()
+
+        actual = [
+            {
+                "day": entry.day,
+                "slot": entry.slot,
+                "course": entry.course,
+                "room": entry.room,
+                "teacher_code": entry.teacher_code,
+            }
+            for entry in result.entries
+            if entry.program == "BBA" and entry.semester == 1 and entry.section == "A" and entry.day == "Friday"
+        ]
+        self.assertEqual(actual, expected)
 
 
 class TestSlotAndDayDetection(unittest.TestCase):

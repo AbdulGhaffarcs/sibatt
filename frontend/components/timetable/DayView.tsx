@@ -3,7 +3,7 @@
 
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { ClassEntry }           from "@/components/timetable/ClassCard"
 import type { Section }              from "@/app/page"
 import ClassCard                     from "@/components/timetable/ClassCard"
@@ -16,6 +16,15 @@ function todayKey(): Day {
   return keys[new Date().getDay() - 1] ?? "Mo"
 }
 
+function minutesSinceMidnight(date: Date): number {
+  return date.getHours() * 60 + date.getMinutes()
+}
+
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(":").map(Number)
+  return hours * 60 + minutes
+}
+
 interface DayViewProps {
   section:         Section
   entries:         ClassEntry[]
@@ -24,6 +33,13 @@ interface DayViewProps {
 
 export default function DayView({ section, entries, onChangeSection }: DayViewProps) {
   const [activeDay, setActiveDay] = useState<Day>(todayKey())
+  const [now, setNow] = useState(() => new Date())
+
+  // Re-evaluate the five-minute "Up next" window even while the page stays open.
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 30_000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   const fullDay = DAY_FULL[activeDay]
 
@@ -35,9 +51,16 @@ export default function DayView({ section, entries, onChangeSection }: DayViewPr
     [entries, fullDay]
   )
 
-  // "Up next" — first class whose start_time is still in the future
-  const hhmm    = new Date().toTimeString().slice(0, 5)
-  const nextIdx = dayEntries.findIndex((e) => e.start_time > hhmm)
+  // Mark the next class only during the five minutes immediately before it
+  // starts, and only when the user is viewing today's timetable.
+  const isViewingToday = activeDay === todayKey()
+  const nowMinutes = minutesSinceMidnight(now)
+  const nextIdx = isViewingToday
+    ? dayEntries.findIndex((entry) => {
+        const startMinutes = timeToMinutes(entry.start_time)
+        return nowMinutes >= startMinutes - 5 && nowMinutes < startMinutes
+      })
+    : -1
 
   return (
     <div className="flex flex-col w-full max-w-sm gap-4">
