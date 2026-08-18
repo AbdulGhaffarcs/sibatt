@@ -7,6 +7,7 @@ import { useMemo, useState } from "react"
 import type { ClassEntry }   from "@/components/timetable/ClassCard"
 import type { Section }      from "@/app/page"
 import { SEM_ROMAN }         from "@/lib/constants"
+import { searchScore }        from "@/lib/search"
 
 interface SectionPickerProps {
   entries:  ClassEntry[]
@@ -51,12 +52,18 @@ export default function SectionPicker({
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
     if (!q) return sections
-    return sections.filter(
-      (s) =>
-        s.program.toLowerCase().includes(q) ||
-        s.section.toLowerCase().includes(q) ||
-        String(s.semester).includes(q)
-    )
+    return sections
+      .map((section) => ({
+        section,
+        score: Math.min(
+          searchScore(section.program, q) ?? Infinity,
+          searchScore(section.section, q) ?? Infinity,
+          searchScore(String(section.semester), q) ?? Infinity,
+        ),
+      }))
+      .filter((item) => Number.isFinite(item.score))
+      .sort((a, b) => a.score - b.score)
+      .map((item) => item.section)
   }, [sections, query])
 
   // ── group by program ──────────────────────────────────────────────────────
@@ -69,7 +76,7 @@ export default function SectionPicker({
   }, [filtered])
 
   return (
-    <div className="flex flex-col w-full max-w-sm rounded-2xl border border-zinc-200 bg-white overflow-hidden">
+    <div className="flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white">
 
       {/* header */}
       <div className="flex items-center gap-3 border-b border-zinc-100 px-4 py-3">

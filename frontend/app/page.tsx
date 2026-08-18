@@ -103,7 +103,7 @@ export default function Home() {
   // ── section picker overlay ─────────────────────────────────────────────────
   if (pickingSection) {
     return (
-      <main className="flex min-h-screen items-start justify-center px-4 pt-6">
+      <main className="flex min-h-screen items-start justify-center px-3 sm:px-6 pt-4 sm:pt-6">
         <SectionPicker
           entries={entries}
           onSelect={(s) => {
@@ -118,7 +118,7 @@ export default function Home() {
 
   // ── main views ─────────────────────────────────────────────────────────────
   return (
-    <main className="flex min-h-screen flex-col items-center px-4 pt-6 pb-20">
+    <main className="flex min-h-screen flex-col items-center px-3 pt-4 pb-24 sm:px-6 sm:pt-6">
 
       {/* timetable view */}
       {view === "timetable" && (

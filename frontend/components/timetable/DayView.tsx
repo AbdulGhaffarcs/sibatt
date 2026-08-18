@@ -63,7 +63,7 @@ export default function DayView({ section, entries, onChangeSection }: DayViewPr
     : -1
 
   return (
-    <div className="flex flex-col w-full max-w-sm gap-4">
+    <div className="flex w-full max-w-xl flex-col gap-4">
 
       {/* section header */}
       <div className="flex items-center justify-between gap-3 min-w-0">

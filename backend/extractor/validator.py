@@ -47,6 +47,17 @@ _NOT_TEACHER = frozenset({
     "TOP", "END", "BIG", "ASK", "MAN", "LAB", "USE",
 })
 
+# Text printed by aSc Timetables around the grid.  It is not course content,
+# even when a PDF's vector grid happens to put it in a reconstructed cell.
+_NON_COURSE_TEXT = frozenset({
+    "sukkur iba university",
+    "asc timetables",
+})
+
+# Placeholder labels present in the exported source PDF. They are not real
+# student sections and must never appear in the section picker.
+_DUMMY_SECTIONS = frozenset({"X", "Y"})
+
 
 @dataclass
 class EntryData:
@@ -150,6 +161,11 @@ def _parse_page_header(page: fitz.Page) -> tuple[str, list[str]]:
             return m3.group(1), [m3.group(2).strip()]
 
         # Pattern: B.Ed - I(A) (with periods and spaces)
+        m4_spaced = re.match(r"^([A-Z]\.\s*[A-Za-z]+)\s*-\s*([IVXLC]+)\s*\(([^)]+)\)$", title_text)
+        if m4_spaced:
+            program = m4_spaced.group(1).replace(".", "").replace(" ", "").upper()
+            sections = [s.strip() for s in re.split(r"[,&/\s]+", m4_spaced.group(3)) if s.strip()]
+            return program, sections
         m4 = re.match(r"^([A-Z]+\.?[A-Za-z]*)\s*-\s*[IVXLC]*\s*\(([^)]+)\)$", title_text)
         if m4:
             program = m4.group(1).replace(".", "").strip()
@@ -163,7 +179,7 @@ def _parse_page_header(page: fitz.Page) -> tuple[str, list[str]]:
             return m5.group(1), []
 
         # Pattern: Ph.D-EE-II
-        m6 = re.match(r"^([A-Za-z.]+)-([A-Z]+)-([IVXLC]+)$", title_text)
+        m6 = re.match(r"^([A-Za-z.]+)-([A-Z]+)-([IVXLC]+)(?:/[IVXLC]+)*$", title_text)
         if m6:
             return m6.group(1).replace(".", "").strip(), []
 
@@ -171,6 +187,20 @@ def _parse_page_header(page: fitz.Page) -> tuple[str, list[str]]:
         m7 = re.match(r"^Additional\s+Course\s+(.+)$", title_text)
         if m7:
             return "ADDITIONAL", []
+
+        m8 = re.match(r"^([A-Za-z.]+)(?:\s*\(([^)]+)\)|-([A-Za-z]+))?\s*-?\s*([IVXLC]+)(?:\s*\(([^)]+)\))?$", title_text)
+        if m8:
+            base, specialization, dashed_name, _, sections_raw = m8.groups()
+            program = "-".join(
+                part.replace(".", "").strip().upper()
+                for part in (base, specialization or dashed_name)
+                if part
+            )
+            sections = [s.strip() for s in re.split(r"[,&/\s]+", sections_raw or "") if s.strip()]
+            return program, sections
+
+        if re.match(r"^Buffer\s+Batch\s*-\s*[IVXLC]+$", title_text, re.IGNORECASE):
+            return "BUFFER", []
 
     return "", []
 
@@ -490,7 +520,10 @@ def parse_cell_text(text: str) -> dict[str, str]:
         return {"course": "", "teacher_code": "", "room": "", "building": "", "is_online": ""}
 
     room, building, is_online = parse_room(text)
-    teacher_code = parse_teacher_code(text)
+    # Do not mistake the "LR" in a lab room (LR-107) for an instructor.
+    teacher_text = re.sub(r"\bL?R[-_]?\d{1,4}\b", "", text, flags=re.IGNORECASE)
+    teacher_text = re.sub(r"\bB[-_]?(?:I{1,3}|IV|V)\b", "", teacher_text, flags=re.IGNORECASE)
+    teacher_code = parse_teacher_code(teacher_text)
 
     # Strip room from the text to get clean course name
     course_text = text
@@ -527,6 +560,8 @@ def parse_cell_text(text: str) -> dict[str, str]:
     course_text = re.sub(r"([a-z])([A-Z]{2,4})\b", _strip_glued_code, course_text)
 
     # Clean up
+    course_text = re.sub(r"(\w)-\s+([a-z])\b", r"\1-\2", course_text)
+    course_text = re.sub(r"(-[A-Za-z]+)\s+([a-z])\b", r"\1\2", course_text)
     course_text = re.sub(r"\s+", " ", course_text).strip()
     course_text = course_text.strip(",- ")
 
@@ -565,6 +600,7 @@ def parse_cell_text(text: str) -> dict[str, str]:
             continue
         course_parts.append(line)
     course_name = " ".join(course_parts).strip()
+    course_name = re.sub(r"\bLa\s+b\b", "Lab", course_name, flags=re.IGNORECASE)
 
     if not course_name:
         course_name = text.split("\n")[0].strip()
@@ -745,7 +781,8 @@ def classify_cells(
     sections_from_header: list[str] = []
 
     if page is not None:
-        program, sections_from_header = _parse_page_header(page)
+        detected_program, sections_from_header = _parse_page_header(page)
+        program = detected_program or program_override
         semester = _extract_semester_from_page(page) or semester_override
         slot_cols = _detect_slot_columns(page)
         day_rows = _detect_day_rows(page)
@@ -771,6 +808,15 @@ def classify_cells(
         cy = (cell["y0"] + cell["y1"]) / 2
 
         if not text:
+            continue
+
+        normalized_text = re.sub(r"\s+", " ", text).strip().lower()
+        if (
+            normalized_text in _NON_COURSE_TEXT
+            or normalized_text.startswith("timetable generated:")
+            or normalized_text.startswith("lunch & prayer break")
+            or normalized_text.endswith("break")
+        ):
             continue
 
         is_header_row = any(
@@ -815,17 +861,36 @@ def classify_cells(
         ):
             continue
 
-        section_letter = _extract_section_letter(text)
-        content_text = _strip_section_letter(text)
+        section_letter = str(rec.get("section_marker") or _extract_section_letter(text)).strip()
 
-        # A page with one cohort must use its title's section.  Cell text may
-        # start with a teacher initial or a course fragment, neither of which
-        # is a section label.  On multi-section pages, only accept labels that
-        # appear in the title.
-        if len(sections_from_header) == 1:
-            section_letter = sections_from_header[0]
-        elif sections_from_header and section_letter not in sections_from_header:
-            section_letter = sections_from_header[0]
+        if section_letter in _DUMMY_SECTIONS:
+            continue
+
+        if sections_from_header:
+            # A course title can begin with an uppercase abbreviation (such
+            # as HR or OB), which the loose cell parser can mistake for a
+            # section. The page heading is authoritative when it declares
+            # sections, so retain only labels that appear there.
+            section_letter = (
+                section_letter
+                if section_letter in sections_from_header
+                else sections_from_header[0]
+            )
+        else:
+            # Some valid timetable pages (for example MS, Media, and Buffer
+            # Batch schedules) have no per-cell section letter. Keep those
+            # courses visible under one explicit section instead of inventing
+            # sections from uppercase words at the beginning of course names.
+            section_letter = section_override or "General"
+
+        # Only remove a leading token from the course when it is a confirmed
+        # section label. For schedules without explicit sections, abbreviations
+        # such as HR belong to the course title.
+        content_text = (
+            _strip_section_letter(text)
+            if sections_from_header and _extract_section_letter(text) in sections_from_header
+            else text
+        )
 
         if not assigned_day or not assigned_slot:
             result.flagged.append(FlaggedCell(
@@ -837,6 +902,10 @@ def classify_cells(
             continue
 
         parsed = parse_cell_text(content_text)
+        # Never create a display entry from page furniture or a cell whose
+        # content could not be interpreted as a course.
+        if not parsed["course"] or parsed["course"].lower() in _NON_COURSE_TEXT:
+            continue
         start_time, end_time = _SLOT_MAP.get(assigned_slot, ("", ""))
 
         # Keep the class visible, but make incomplete source cells reviewable

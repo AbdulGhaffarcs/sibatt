@@ -91,6 +91,23 @@ def _collapse_words(words: list[tuple]) -> str:
     return " ".join(line for line in collapsed_lines if line).strip()
 
 
+def _section_marker(cell: dict, words: list[tuple]) -> str:
+    """Read the one-letter section marker printed at a cell's upper-right."""
+    candidates: list[tuple[float, str]] = []
+    for word in words:
+        text = str(word[4]).strip()
+        x_mid, y_mid = _word_center(word)
+        if (
+            len(text) == 1
+            and text.isalpha()
+            and text.isupper()
+            and x_mid >= float(cell["x1"]) - 14
+            and y_mid <= float(cell["y0"]) + 12
+        ):
+            candidates.append((y_mid, text))
+    return min(candidates, default=(0.0, ""))[1]
+
+
 def _merge_suffix_fragments(words: list[tuple]) -> list[tuple]:
     """Merge trailing suffix fragments split by PDF column breaks.
 
@@ -154,7 +171,11 @@ def parse_page(page: fitz.Page, cells: list[dict]) -> list[dict]:
     for cell, cell_words in zip(cells, words_by_cell):
         text = _collapse_words(cell_words)
         if text:
-            records.append({"cell": dict(cell), "text": text})
+            records.append({
+                "cell": dict(cell),
+                "text": text,
+                "section_marker": _section_marker(cell, cell_words),
+            })
 
     return records
 

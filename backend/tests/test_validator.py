@@ -324,5 +324,14 @@ class TestParseCellTextEdgeCases(unittest.TestCase):
         self.assertEqual(result["teacher_code"], "")
 
 
+class TestClassifyCellFiltering(unittest.TestCase):
+    def test_university_header_is_not_added_as_a_course(self):
+        records = [
+            {"cell": {"x0": 200, "y0": 200, "x1": 300, "y1": 250}, "text": "Sukkur IBA University"},
+        ]
+        result = classify_cells(records, term="Fall-2026")
+        self.assertEqual(result.entries, [])
+
+
 if __name__ == "__main__":
     unittest.main()

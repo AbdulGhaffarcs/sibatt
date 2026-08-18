@@ -33,7 +33,7 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
       }`}
     >
       {/* time column */}
-      <div className="flex min-w-[48px] flex-col items-center">
+      <div className="flex min-w-[54px] flex-col items-center sm:min-w-[68px]">
         <span className="font-mono text-[12px] font-medium text-zinc-800">
           {entry.start_time}
         </span>
@@ -66,7 +66,7 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
             </span>
           ) : (
             <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600">
-              {entry.room}
+              {entry.room || "Room TBA"}
             </span>
           )}
 

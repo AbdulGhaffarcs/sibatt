@@ -14,7 +14,13 @@ def _md5_bytes(data: bytes) -> str:
 
 
 def _cache_path(pdf_path: Path) -> Path:
-    return pdf_path.parent / "pdf_hash.txt"
+    # Keep importer state inside the project. Source PDFs are often supplied
+    # from a read-only Downloads folder, so writing beside the PDF can make a
+    # perfectly valid import fail.
+    cache_dir = Path(__file__).resolve().parents[2] / ".cache"
+    cache_dir.mkdir(exist_ok=True)
+    source_id = hashlib.md5(str(pdf_path.resolve()).encode("utf-8")).hexdigest()[:12]
+    return cache_dir / f"{pdf_path.stem}-{source_id}.hash"
 
 
 def load_pdf(path: str) -> fitz.Document | None:

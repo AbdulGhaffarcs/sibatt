@@ -79,6 +79,7 @@ export function getAllEntries(): FullEntry[] {
     JOIN   rooms     r  ON e.room_id     = r.id
     JOIN   timeslots ts ON e.timeslot_id = ts.id
     JOIN   terms     te ON e.term_id     = te.id
+    WHERE  te.year = (SELECT MAX(year) FROM terms)
     ORDER  BY e.day, ts.slot_no
   `)
 

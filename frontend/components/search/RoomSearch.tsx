@@ -8,6 +8,7 @@ import type { ClassEntry }    from "@/components/timetable/ClassCard"
 import ClassCard              from "@/components/timetable/ClassCard"
 import DayTabs                from "@/components/ui/DayTabs"
 import { DAY_FULL_KEYS }      from "@/lib/constants"
+import { searchScore }         from "@/lib/search"
 
 interface RoomSearchProps {
   entries: ClassEntry[]
@@ -25,7 +26,11 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
   const filteredRooms = useMemo(() => {
     const q = query.toLowerCase().trim()
     if (!q) return rooms
-    return rooms.filter((r) => r.toLowerCase().includes(q))
+    return rooms
+      .map((room) => ({ room, score: searchScore(room, q) }))
+      .filter((item): item is { room: string; score: number } => item.score !== null)
+      .sort((a, b) => a.score - b.score || a.room.localeCompare(b.room))
+      .map((item) => item.room)
   }, [rooms, query])
 
   const roomCounts = useMemo(() => {
@@ -43,7 +48,7 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
       .sort((a, b) => a.slot - b.slot)
 
     return (
-      <div className="flex flex-col w-full max-w-sm gap-4">
+      <div className="flex w-full max-w-xl flex-col gap-4">
 
         {/* back + room name */}
         <div className="flex items-center gap-3">
@@ -78,7 +83,7 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
 
   // ── room list ─────────────────────────────────────────────────────────────
   return (
-    <div className="flex flex-col w-full max-w-sm gap-4">
+    <div className="flex w-full max-w-xl flex-col gap-4">
       <h2 className="text-[17px] font-semibold text-zinc-900">Rooms</h2>
 
       <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">

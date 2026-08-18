@@ -7,6 +7,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace as dataclass_replace
 from pathlib import Path
 
 import fitz
@@ -48,12 +49,26 @@ def _get_or_create(db, model, defaults: dict, unique_filter: dict, cache: dict |
     return instance
 
 
+def _clear_timetable_data(db) -> None:
+    """Remove the active timetable while preserving the shared slot definitions."""
+    db.query(FlaggedCell).delete()
+    db.query(Entry).delete()
+    db.query(Section).delete()
+    db.query(Course).delete()
+    db.query(Teacher).delete()
+    db.query(Room).delete()
+    db.query(Program).delete()
+    db.query(Term).delete()
+    db.commit()
+
+
 def ingest_pdf(
     pdf_path: str,
     year: int = 2025,
     semester: str = "Fall",
     force: bool = False,
     replace_term: bool = True,
+    replace: bool = False,
 ) -> dict:
     """Full pipeline: load PDF → extract → validate → upsert to DB."""
     init_db()
@@ -77,6 +92,8 @@ def ingest_pdf(
         entity_caches: dict[type, dict] = {
             Program: {}, Section: {}, Course: {}, Teacher: {}, Room: {},
         }
+        if replace:
+            _clear_timetable_data(db)
         seed_timeslots(db)
         term = seed_term(db, year, semester)
 
@@ -104,7 +121,20 @@ def ingest_pdf(
                 term=term_label,
             )
 
+            expanded_entries = []
             for entry_data in result.entries:
+                # A few source pages are shared by two departments, e.g.
+                # ``BS-V(CS, CS-AI)-B``. Publish the same scheduled class in
+                # both program pickers instead of creating one combined name.
+                names = [name.strip() for name in entry_data.program.split(",") if name.strip()]
+                if len(names) > 1:
+                    names = [
+                        name if name.startswith("BS-") else f"BS-{name}"
+                        for name in names
+                    ]
+                expanded_entries.extend(dataclass_replace(entry_data, program=name) for name in (names or [entry_data.program]))
+
+            for entry_data in expanded_entries:
                 if not entry_data.program:
                     continue
 
@@ -187,6 +217,11 @@ def main() -> None:
     parser.add_argument("pdf_path", help="Path to the timetable PDF")
     parser.add_argument("--year", type=int, default=2025)
     parser.add_argument("--semester", default="Fall")
+    parser.add_argument(
+        "--replace",
+        action="store_true",
+        help="Replace the active timetable instead of adding this term alongside it",
+    )
     parser.add_argument("--export", action="store_true", help="Also export to frontend SQLite bundle after ingest")
     parser.add_argument("--force", action="store_true", help="Reprocess the PDF even when its source hash is unchanged")
     parser.add_argument("--append", action="store_true", help="Keep existing term entries instead of replacing them")
@@ -198,6 +233,7 @@ def main() -> None:
         semester=args.semester,
         force=args.force,
         replace_term=not args.append,
+        replace=args.replace,
     )
     print(stats)
 

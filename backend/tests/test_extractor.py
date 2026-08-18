@@ -43,7 +43,7 @@ class ExtractorTests(unittest.TestCase):
             self.assertIsNotNone(third)
             third.close()
 
-            self.assertTrue((pdf_path.parent / "pdf_hash.txt").exists())
+            self.assertTrue(load_pdf(str(pdf_path)) is None)
 
     def test_get_page_hash_changes_when_page_content_changes(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -5,6 +5,7 @@ import type { ClassEntry }        from "@/components/timetable/ClassCard"
 import ClassCard                  from "@/components/timetable/ClassCard"
 import DayTabs                    from "@/components/ui/DayTabs"
 import { DAY_FULL_KEYS }          from "@/lib/constants"
+import { searchScore }             from "@/lib/search"
 
 export interface Course {
   name:    string
@@ -26,9 +27,11 @@ export default function CourseSearch({ courses }: CourseSearchProps) {
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()
     if (!q) return courses
-    return courses.filter((c) =>
-      c.name.toLowerCase().includes(q)
-    )
+    return courses
+      .map((course) => ({ course, score: searchScore(course.name, q) }))
+      .filter((item): item is { course: Course; score: number } => item.score !== null)
+      .sort((a, b) => a.score - b.score || a.course.name.localeCompare(b.course.name))
+      .map((item) => item.course)
   }, [courses, query])
 
   if (selected) {
@@ -37,7 +40,7 @@ export default function CourseSearch({ courses }: CourseSearchProps) {
       .sort((a, b) => a.slot - b.slot)
 
     return (
-      <div className="flex flex-col w-full max-w-sm gap-4">
+      <div className="flex w-full max-w-xl flex-col gap-4">
 
         <div className="flex items-center gap-3">
           <button
@@ -69,7 +72,7 @@ export default function CourseSearch({ courses }: CourseSearchProps) {
   }
 
   return (
-    <div className="flex flex-col w-full max-w-sm gap-4">
+    <div className="flex w-full max-w-xl flex-col gap-4">
       <h2 className="text-[17px] font-semibold text-zinc-900">Courses</h2>
 
       <div className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">
