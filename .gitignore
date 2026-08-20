@@ -11,7 +11,7 @@ node_modules/
 out/
 
 # DB files
-*.db
+
 pdf_hash.txt
 page_hashes.json
 
