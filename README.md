@@ -52,25 +52,49 @@ slotfinder/
 - Node.js 18+
 - Python 3.9+
 
-### Development
+### Run locally
 
-**Frontend:**
+Open two terminals from the repository root.
+
+**Terminal 1 — backend:**
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r backend/requirements.txt
+export API_KEY=dev-api-key-change-me
+uvicorn backend.api.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+The admin API runs at <http://127.0.0.1:8000>; its interactive documentation is at <http://127.0.0.1:8000/docs>.
+
+**Terminal 2 — frontend:**
+
 ```bash
 cd frontend
 npm install
-npm run dev          # Start dev server on http://localhost:3000
-npm run test:watch  # Watch mode for tests
+npm run dev
 ```
 
-**Backend:**
-See `backend/README.md` for setup and API documentation.
+Open <http://localhost:3000>.
+
+### Load a new timetable
+
+From the repository root, with the virtual environment activated:
+
+```bash
+python -m backend.scripts.ingest path/to/timetable.pdf --year 2026 --semester Fall --replace --export
+```
+
+This replaces previously imported timetable data, preserves shared timeslots, and writes the bundle read by the frontend. See [the backend guide](backend/README.md) for reset and API commands.
 
 ### Building
 
 **Frontend:**
 ```bash
+cd frontend
 npm run build  # Production build
-npm start      # Start production server
+python3 -m http.server 3000 --directory out  # Serve the static build
 ```
 
 ## 👥 Team

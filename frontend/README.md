@@ -2,18 +2,24 @@
 
 Next.js 14 static site for searching university timetables. Runs entirely client-side using sql.js.
 
-## Setup
+## Run locally
+
+Run these commands from the repository root:
 
 ```bash
 cd frontend
 npm install
+npm run dev
 ```
 
-## Development
+Open <http://localhost:3000>.
+
+The frontend reads `public/timetable.db`. In a separate terminal, before first use or whenever a new PDF arrives, create it from the backend:
 
 ```bash
-npm run dev
-# Opens at http://localhost:3000
+cd ..
+source .venv/bin/activate
+python -m backend.scripts.ingest path/to/timetable.pdf --year 2026 --semester Fall --replace --export
 ```
 
 ## Building
@@ -21,6 +27,8 @@ npm run dev
 ```bash
 npm run build
 # Static export in out/
+python3 -m http.server 3000 --directory out
+# Serve the static build at http://localhost:3000
 ```
 
 ## Testing
@@ -32,10 +40,12 @@ npm run test:watch # Watch mode
 
 ## How It Works
 
-1. On mount, `loadDB("/timetable.db")` fetches the pre-built SQLite bundle
+1. On mount, `loadDB("/timetable.db")` fetches the pre-built SQLite bundle without using an HTTP cache
 2. `sql.js` loads it into an in-memory database
 3. All search/filtering happens client-side via SQL queries
-4. Three views: **Timetable** (by section), **Teachers** (by name/code), **Rooms** (by code)
+4. Three views: **Timetable** (by section), **Courses**, and **Rooms**
+
+The service worker always retrieves `timetable.db` from the network, so a newly exported timetable appears after a page refresh instead of serving a previous term.
 
 ## Key Files
 

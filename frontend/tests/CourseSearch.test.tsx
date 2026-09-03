@@ -50,6 +50,6 @@ describe("CourseSearch", () => {
 
   it("shows entry count per course", () => {
     render(<CourseSearch courses={mockCourses} />)
-    expect(screen.getByText(/1 slot/)).toBeInTheDocument()
+    expect(screen.getAllByText(/1 slot/)).toHaveLength(3)
   })
 })

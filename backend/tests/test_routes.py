@@ -10,6 +10,10 @@ from pathlib import Path
 
 os.environ["DATABASE_URL"] = "sqlite://"  # in-memory for tests
 os.environ["API_KEY"] = "test-api-key"
+# Redirect /export away from the real frontend/public/timetable.db.
+os.environ["EXPORT_PATH"] = str(
+    Path(tempfile.mkdtemp(prefix="slotfinder-test-export-")) / "timetable.db"
+)
 
 from fastapi.testclient import TestClient
 from backend.api.main import app

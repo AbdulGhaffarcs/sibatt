@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import tempfile
 from pathlib import Path
 
@@ -13,7 +14,7 @@ from sqlalchemy import text as sql_text
 from sqlalchemy.orm import Session
 
 from backend.api.auth import verify_api_key
-from backend.db import get_db
+from backend.db import SessionLocal, get_db
 from backend.db.export import export_to_sqlite
 from backend.db.models import FlaggedCell
 from backend.scripts.ingest import ingest_pdf
@@ -22,7 +23,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_DEFAULT_EXPORT = Path(__file__).resolve().parents[2] / "frontend" / "public" / "timetable.db"
+# Overridable via EXPORT_PATH so tests never touch the real frontend bundle.
+# Resolved lazily (per call) because env vars may be set after import.
+def _default_export() -> Path:
+    return Path(
+        os.getenv("EXPORT_PATH")
+        or Path(__file__).resolve().parents[2] / "frontend" / "public" / "timetable.db"
+    )
 
 
 class FixFlaggedBody(BaseModel):
@@ -59,16 +66,17 @@ def ingest(
     file: UploadFile = File(...),
     year: int = Form(2025),
     semester: str = Form("Fall"),
+    replace: bool = Form(False),
     _auth: None = Depends(verify_api_key),
 ):
-    """Upload a timetable PDF and ingest it."""
+    """Upload and import a timetable PDF, optionally replacing all timetable data."""
     suffix = Path(file.filename or "upload.pdf").suffix or ".pdf"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(file.file.read())
         tmp_path = tmp.name
 
     try:
-        stats = ingest_pdf(tmp_path, year=year, semester=semester)
+        stats = ingest_pdf(tmp_path, year=year, semester=semester, replace=replace)
     except Exception:
         logger.exception("Ingest failed for %s", file.filename)
         raise HTTPException(status_code=500, detail="Ingestion pipeline failed")
@@ -77,6 +85,16 @@ def ingest(
 
     if stats.get("status") == "skipped":
         raise HTTPException(status_code=422, detail=stats)
+
+    # The static frontend reads this SQLite bundle, so publishing it here keeps
+    # an admin upload from leaving users on the previous timetable.
+    try:
+        with SessionLocal() as export_db:
+            bundle_path = export_to_sqlite(export_db, _default_export())
+    except Exception:
+        logger.exception("Export after ingest failed")
+        raise HTTPException(status_code=500, detail="Timetable was imported but bundle export failed")
+    stats["bundle_path"] = str(bundle_path)
     return stats
 
 
@@ -87,7 +105,7 @@ def export(
 ):
     """Export PostgreSQL data to the frontend SQLite bundle."""
     try:
-        path = export_to_sqlite(db, _DEFAULT_EXPORT)
+        path = export_to_sqlite(db, _default_export())
     except Exception:
         logger.exception("Export failed")
         raise HTTPException(status_code=500, detail="Export failed")

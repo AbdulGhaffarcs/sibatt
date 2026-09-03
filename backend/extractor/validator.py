@@ -406,6 +406,10 @@ def parse_room(text: str) -> tuple[str, str, bool]:
     if "online" in lower or "zoom" in lower or "teams" in lower:
         return "", "", True
 
+    # Special lab venue used by the education/biology schedules.
+    if re.search(r"\bKC\b", text, re.IGNORECASE):
+        return "KC", "", False
+
     # Try R-XXX pattern (2-4 digits)
     room_pat = re.compile(r"(R[-_]?\d{2,4})", re.IGNORECASE)
     m = room_pat.search(text)

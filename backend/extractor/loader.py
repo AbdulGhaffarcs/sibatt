@@ -23,6 +23,19 @@ def _cache_path(pdf_path: Path) -> Path:
     return cache_dir / f"{pdf_path.stem}-{source_id}.hash"
 
 
+def clear_ingestion_cache() -> int:
+    """Remove cached source fingerprints so a future import is always fresh."""
+    cache_dir = Path(__file__).resolve().parents[2] / ".cache"
+    if not cache_dir.exists():
+        return 0
+
+    removed = 0
+    for cache_file in cache_dir.glob("*.hash"):
+        cache_file.unlink()
+        removed += 1
+    return removed
+
+
 def load_pdf(path: str) -> fitz.Document | None:
     """Open a PDF only when its file-level md5 differs from the cached hash."""
     pdf_path = Path(path)

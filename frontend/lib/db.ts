@@ -6,6 +6,7 @@
 // Or just run `npm install` — postinstall in package.json does it automatically.
 
 import type { ClassEntry } from "@/components/timetable/ClassCard"
+import { ACTIVE_YEAR } from "@/lib/constants"
 
 // Full entry — ClassEntry display fields + extra fields used for section filtering
 export interface FullEntry extends ClassEntry {
@@ -22,7 +23,9 @@ let db: any = null
 export async function loadDB(path: string): Promise<void> {
   // Start both downloads immediately. Loading the database only after sql.js
   // initialises adds an unnecessary round trip to the first screen.
-  const databaseResponse = fetch(path)
+  // Timetables are replaced in-place after ingestion. Never let a browser or
+  // an older service worker fulfil this request from an HTTP cache.
+  const databaseResponse = fetch(path, { cache: "no-store" })
 
   // Dynamic import keeps sql.js out of the SSR bundle.
   const initSqlJs = (await import("sql.js")).default
@@ -38,9 +41,9 @@ export async function loadDB(path: string): Promise<void> {
 }
 
 // Generic row helper — maps sql.js columnar result to plain objects
-function rows<T>(sql: string): T[] {
+function rows<T>(sql: string, params: unknown[] = []): T[] {
   if (!db) throw new Error("DB not loaded — call loadDB() first")
-  const result = db.exec(sql) as { columns: string[]; values: unknown[][] }[]
+  const result = db.exec(sql, params) as { columns: string[]; values: unknown[][] }[]
   if (!result.length) return []
   const { columns, values } = result[0]
   return values.map((row) => {
@@ -79,9 +82,9 @@ export function getAllEntries(): FullEntry[] {
     JOIN   rooms     r  ON e.room_id     = r.id
     JOIN   timeslots ts ON e.timeslot_id = ts.id
     JOIN   terms     te ON e.term_id     = te.id
-    WHERE  te.year = (SELECT MAX(year) FROM terms)
+    WHERE  te.year = ?
     ORDER  BY e.day, ts.slot_no
-  `)
+  `, [ACTIVE_YEAR])
 
   return raw.map((r) => ({
     id:           r.id           as number,

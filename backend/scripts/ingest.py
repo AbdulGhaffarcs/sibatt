@@ -7,23 +7,15 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import re
 from dataclasses import replace as dataclass_replace
 from pathlib import Path
 
 import fitz
 
 from backend.db import SessionLocal, init_db
-from backend.db.models import (
-    Course,
-    Entry,
-    FlaggedCell,
-    Program,
-    Room,
-    Section,
-    Teacher,
-    Term,
-    Timeslot,
-)
+from backend.db.models import Course, Entry, FlaggedCell, Program, Room, Section, Teacher, Timeslot
+from backend.db.reset import reset_timetable_data
 from backend.db.seed import seed_term, seed_timeslots
 from backend.extractor.grid import extract_grid
 from backend.extractor.loader import load_pdf
@@ -49,19 +41,6 @@ def _get_or_create(db, model, defaults: dict, unique_filter: dict, cache: dict |
     return instance
 
 
-def _clear_timetable_data(db) -> None:
-    """Remove the active timetable while preserving the shared slot definitions."""
-    db.query(FlaggedCell).delete()
-    db.query(Entry).delete()
-    db.query(Section).delete()
-    db.query(Course).delete()
-    db.query(Teacher).delete()
-    db.query(Room).delete()
-    db.query(Program).delete()
-    db.query(Term).delete()
-    db.commit()
-
-
 def ingest_pdf(
     pdf_path: str,
     year: int = 2025,
@@ -75,7 +54,9 @@ def ingest_pdf(
 
     # The hash cache is useful for scheduled imports, but a corrected parser
     # must be able to reprocess the same source document.
-    doc = fitz.open(pdf_path) if force else load_pdf(pdf_path)
+    # A full replacement must reprocess the source even when it has the same
+    # fingerprint; otherwise it could clear nothing and report "skipped".
+    doc = fitz.open(pdf_path) if force or replace else load_pdf(pdf_path)
     if doc is None:
         return {"status": "skipped", "reason": "same hash, no changes"}
 
@@ -93,7 +74,7 @@ def ingest_pdf(
             Program: {}, Section: {}, Course: {}, Teacher: {}, Room: {},
         }
         if replace:
-            _clear_timetable_data(db)
+            reset_timetable_data(db)
         seed_timeslots(db)
         term = seed_term(db, year, semester)
 
@@ -126,12 +107,11 @@ def ingest_pdf(
                 # A few source pages are shared by two departments, e.g.
                 # ``BS-V(CS, CS-AI)-B``. Publish the same scheduled class in
                 # both program pickers instead of creating one combined name.
-                names = [name.strip() for name in entry_data.program.split(",") if name.strip()]
-                if len(names) > 1:
-                    names = [
-                        name if name.startswith("BS-") else f"BS-{name}"
-                        for name in names
-                    ]
+                combined = re.match(r"^(BS)\s*\(([^)]+)\)$", entry_data.program)
+                if combined and "," in combined.group(2):
+                    names = [f"{combined.group(1)} ({part.strip()})" for part in combined.group(2).split(",")]
+                else:
+                    names = [entry_data.program]
                 expanded_entries.extend(dataclass_replace(entry_data, program=name) for name in (names or [entry_data.program]))
 
             for entry_data in expanded_entries:

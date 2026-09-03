@@ -102,6 +102,7 @@ def _section_marker(cell: dict, words: list[tuple]) -> str:
             and text.isalpha()
             and text.isupper()
             and x_mid >= float(cell["x1"]) - 14
+            and y_mid >= float(cell["y0"]) - 8
             and y_mid <= float(cell["y0"]) + 12
         ):
             candidates.append((y_mid, text))
@@ -174,7 +175,10 @@ def parse_page(page: fitz.Page, cells: list[dict]) -> list[dict]:
             records.append({
                 "cell": dict(cell),
                 "text": text,
-                "section_marker": _section_marker(cell, cell_words),
+                # The marker is printed a few points above the cell's top
+                # border in some PDF rows, so inspect all page words rather
+                # than only words assigned by center containment.
+                "section_marker": _section_marker(cell, words),
             })
 
     return records

@@ -1,6 +1,9 @@
 // frontend/lib/constants.ts
 // Shared constants used across components.
 
+/** Only timetables from this academic year are shown. */
+export const ACTIVE_YEAR = 2026
+
 export const SEM_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"] as const
 
 export const DAY_KEYS = ["Mo", "Tu", "We", "Th", "Fr"] as const
