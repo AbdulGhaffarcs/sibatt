@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Iterable
 
-import fitz
+import pymupdf
 
 
 LINE_TOLERANCE = 1.0

@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import fitz
+import pymupdf
 
 _DAYS_FULL = {
     "Mo": "Monday", "Tu": "Tuesday", "We": "Wednesday",

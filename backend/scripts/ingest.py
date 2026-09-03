@@ -11,7 +11,7 @@ import re
 from dataclasses import replace as dataclass_replace
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 from backend.db import SessionLocal, init_db
 from backend.db.models import Course, Entry, FlaggedCell, Program, Room, Section, Teacher, Timeslot
@@ -56,7 +56,7 @@ def ingest_pdf(
     # must be able to reprocess the same source document.
     # A full replacement must reprocess the source even when it has the same
     # fingerprint; otherwise it could clear nothing and report "skipped".
-    doc = fitz.open(pdf_path) if force or replace else load_pdf(pdf_path)
+    doc = pymupdf.open(pdf_path) if force or replace else load_pdf(pdf_path)
     if doc is None:
         return {"status": "skipped", "reason": "same hash, no changes"}
 

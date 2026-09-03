@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 try:
     from backend.extractor.grid import extract_grid

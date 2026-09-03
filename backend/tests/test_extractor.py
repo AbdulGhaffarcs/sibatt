@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 from backend.extractor.loader import get_page_hash, load_pdf
 from backend.extractor.grid import extract_grid
@@ -62,7 +62,7 @@ class ExtractorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             pdf_path = Path(tmp) / "grid.pdf"
             make_pdf(pdf_path)
-            doc = fitz.open(pdf_path)
+            doc = pymupdf.open(pdf_path)
 
             cells = extract_grid(doc[0])
 
@@ -75,7 +75,7 @@ class ExtractorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             pdf_path = Path(tmp) / "parse.pdf"
             make_pdf(pdf_path, text="Course A")
-            doc = fitz.open(pdf_path)
+            doc = pymupdf.open(pdf_path)
             cells = extract_grid(doc[0])
 
             records = parse_page(doc[0], cells)

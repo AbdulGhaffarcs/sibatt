@@ -83,7 +83,7 @@ Open <http://localhost:3000>.
 From the repository root, with the virtual environment activated:
 
 ```bash
-python -m backend.scripts.ingest path/to/timetable.pdf --year 2026 --semester Fall --replace --export
+python -m backend.scripts.ingest /home/UserX/slot-finder/fall2026.pdf --year 2026 --semester Fall --replace --export
 ```
 
 This replaces previously imported timetable data, preserves shared timeslots, and writes the bundle read by the frontend. See [the backend guide](backend/README.md) for reset and API commands.

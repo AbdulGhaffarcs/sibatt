@@ -6,7 +6,7 @@ import hashlib
 import sys
 from pathlib import Path
 
-import fitz
+import pymupdf
 
 
 def _md5_bytes(data: bytes) -> str:
