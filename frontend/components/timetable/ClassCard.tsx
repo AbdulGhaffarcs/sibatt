@@ -25,10 +25,15 @@ export interface ClassEntry {
 
 interface ClassCardProps {
   entry: ClassEntry
+  isCurrent?: boolean
   isNext?: boolean
 }
 
-export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
+export default function ClassCard({
+  entry,
+  isCurrent = false,
+  isNext = false,
+}: ClassCardProps) {
   const periodLabel =
     entry.end_slot && entry.end_slot !== entry.slot
       ? `P${entry.slot}–P${entry.end_slot}`
@@ -37,7 +42,11 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
   return (
     <div
       className={`flex gap-3 rounded-xl border bg-white p-3 transition-shadow ${
-        isNext ? "border-blue-300 shadow-sm" : "border-zinc-200"
+        isCurrent
+          ? "border-amber-400 shadow-sm"
+          : isNext
+            ? "border-blue-300 shadow-sm"
+            : "border-zinc-200"
       }`}
     >
       {/* time column */}
@@ -64,6 +73,12 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
           {isNext && (
             <span className="flex-none rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
               Up next
+            </span>
+          )}
+
+          {isCurrent && (
+            <span className="flex-none rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+              Current
             </span>
           )}
         </div>

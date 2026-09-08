@@ -129,6 +129,14 @@ export default function DayView({
       })
     : -1
 
+  const currentIdx = isViewingToday
+    ? displayEntries.findIndex((entry) => {
+        const startMinutes = timeToMinutes(entry.start_time)
+        const endMinutes = timeToMinutes(entry.end_time)
+        return nowMinutes >= startMinutes && nowMinutes < endMinutes
+      })
+    : -1
+
   return (
     <div className="flex w-full max-w-xl flex-col gap-4">
       {/* section header */}
@@ -159,6 +167,7 @@ export default function DayView({
             <ClassCard
               key={`${entry.id}-${entry.slot}`}
               entry={entry}
+              isCurrent={i === currentIdx}
               isNext={i === nextIdx}
             />
           ))}

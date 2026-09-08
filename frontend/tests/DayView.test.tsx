@@ -76,6 +76,12 @@ describe("DayView", () => {
     expect(screen.getByText("Up next")).toBeInTheDocument()
   })
 
+  it("marks the class in progress as current", () => {
+    vi.setSystemTime(new Date("2025-09-15T11:30:00"))
+    render(<DayView section={mockSection} entries={mockEntries} />)
+    expect(screen.getByText("Current")).toBeInTheDocument()
+  })
+
   it("does not mark an upcoming class too early", () => {
     vi.setSystemTime(new Date("2025-09-15T10:30:00"))
     render(<DayView section={mockSection} entries={mockEntries} />)

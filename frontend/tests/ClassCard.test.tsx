@@ -54,6 +54,12 @@ describe("ClassCard", () => {
     expect(screen.getByText("Up next")).toBeInTheDocument()
   })
 
+  it("highlights the current class with a gold border and badge", () => {
+    const { container } = render(<ClassCard entry={mockEntry} isCurrent={true} />)
+    expect(screen.getByText("Current")).toBeInTheDocument()
+    expect(container.firstElementChild).toHaveClass("border-amber-400")
+  })
+
   it("does not show Up next badge when isNext is false", () => {
     render(<ClassCard entry={mockEntry} isNext={false} />)
     expect(screen.queryByText("Up next")).not.toBeInTheDocument()
