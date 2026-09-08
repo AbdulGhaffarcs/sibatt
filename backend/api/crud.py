@@ -169,6 +169,14 @@ class TimeslotOut(BaseModel):
         from_attributes = True
 
 
+class SectionFilterOut(BaseModel):
+    """One selectable department / semester / section combination."""
+
+    department: str
+    semester: int
+    section: str
+
+
 # ── Programs CRUD ────────────────────────────────────────────────────────────
 
 
@@ -522,6 +530,42 @@ def delete_entry(entry_id: int, db: Session = Depends(get_db)):
 
 
 # ── Query API ────────────────────────────────────────────────────────────────
+
+
+@router.get("/filters/sections", response_model=list[SectionFilterOut])
+def list_section_filter_options(
+    year: Optional[int] = Query(None, ge=2000, le=3000),
+    department: Optional[str] = Query(None, min_length=1),
+    semester: Optional[int] = Query(None, ge=1),
+    db: Session = Depends(get_db),
+):
+    """Return valid, scheduled choices for Department → Semester → Section."""
+    q = (
+        db.query(
+            Program.name.label("department"),
+            Section.semester,
+            Section.section,
+        )
+        .select_from(Entry)
+        .join(Section, Entry.section_id == Section.id)
+        .join(Program, Section.program_id == Program.id)
+        .join(Term, Entry.term_id == Term.id)
+    )
+    if year is not None:
+        q = q.filter(Term.year == year)
+    if department is not None:
+        q = q.filter(Program.name == department)
+    if semester is not None:
+        q = q.filter(Section.semester == semester)
+
+    return [
+        SectionFilterOut(
+            department=row.department,
+            semester=row.semester,
+            section=row.section,
+        )
+        for row in q.distinct().order_by(Program.name, Section.semester, Section.section).all()
+    ]
 
 
 @router.get("/query/entries", response_model=list[EntryDetailOut])

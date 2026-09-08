@@ -14,16 +14,12 @@ import SectionPicker                                         from "@/components/
 import BottomNav                                             from "@/components/ui/BottomNav"
 import type { ClassEntry }                                   from "@/components/timetable/ClassCard"
 import type { Course }                                       from "@/components/search/CourseSearch"
+import type { Section }                                      from "@/lib/filters"
 
 // ── view states ──────────────────────────────────────────────────────────────
 type View = "timetable" | "courses" | "rooms"
 
-// ── section shape ────────────────────────────────────────────────────────────
-export interface Section {
-  program:  string
-  semester: number
-  section:  string
-}
+export type { Section } from "@/lib/filters"
 
 export default function Home() {
   // ── db state ───────────────────────────────────────────────────────────────
@@ -34,9 +30,8 @@ export default function Home() {
   const [rooms,    setRooms]    = useState<string[]>([])
 
   // ── ui state ───────────────────────────────────────────────────────────────
-  const [view,           setView]           = useState<View>("timetable")
-  const [section,        setSection]        = useState<Section | null>(null)
-  const [pickingSection, setPickingSection] = useState(false)
+  const [view,    setView]    = useState<View>("timetable")
+  const [section, setSection] = useState<Section | null>(null)
 
   // ── load SQLite bundle on mount ────────────────────────────────────────────
   useEffect(() => {
@@ -96,51 +91,19 @@ export default function Home() {
     )
   }
 
-  // ── section picker overlay ─────────────────────────────────────────────────
-  if (pickingSection) {
-    return (
-      <main className="flex min-h-screen items-start justify-center px-3 sm:px-6 pt-4 sm:pt-6">
-        <SectionPicker
-          entries={entries}
-          onSelect={(s) => {
-            setSection(s)
-            setPickingSection(false)
-          }}
-          onCancel={() => setPickingSection(false)}
-        />
-      </main>
-    )
-  }
-
   // ── main views ─────────────────────────────────────────────────────────────
   return (
     <main className="flex min-h-screen flex-col items-center px-3 pt-4 pb-24 sm:px-6 sm:pt-6">
 
       {/* timetable view */}
       {view === "timetable" && (
-        section ? (
-          <DayView
-            section={section}
-            entries={sectionEntries}
-            onChangeSection={() => setPickingSection(true)}
-          />
-        ) : (
-          <div className="flex flex-col items-center gap-4 mt-16 max-w-sm text-center">
-            <div className="text-4xl">📅</div>
-            <h1 className="text-xl font-semibold text-zinc-900">
-              Find your timetable
-            </h1>
-            <p className="text-sm text-zinc-500">
-              Pick your program, semester and section to get started.
-            </p>
-            <button
-              onClick={() => setPickingSection(true)}
-              className="mt-2 rounded-xl bg-zinc-900 px-6 py-3 text-sm font-medium text-white"
-            >
-              Select section
-            </button>
-          </div>
-        )
+        <div className="flex w-full max-w-3xl flex-col items-center gap-6">
+          <SectionPicker entries={entries} onSelect={setSection} />
+
+          {section && (
+            <DayView section={section} entries={sectionEntries} />
+          )}
+        </div>
       )}
 
       {/* course search view */}

@@ -74,13 +74,11 @@ function mergeConsecutiveEntries(entries: ClassEntry[]): ClassEntry[] {
 interface DayViewProps {
   section: Section
   entries: ClassEntry[]
-  onChangeSection: () => void
 }
 
 export default function DayView({
   section,
   entries,
-  onChangeSection,
 }: DayViewProps) {
   const [activeDay, setActiveDay] = useState<Day>(todayKey())
   const [now, setNow] = useState(() => new Date())
@@ -134,7 +132,7 @@ export default function DayView({
   return (
     <div className="flex w-full max-w-xl flex-col gap-4">
       {/* section header */}
-      <div className="flex min-w-0 items-center justify-between gap-3">
+      <div className="min-w-0">
         <div className="min-w-0 flex-1">
           <div className="truncate font-mono text-[11px] uppercase tracking-widest text-zinc-400">
             {section.program}
@@ -145,13 +143,6 @@ export default function DayView({
             Section {section.section}
           </div>
         </div>
-
-        <button
-          onClick={onChangeSection}
-          className="flex-none rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] text-zinc-600 hover:bg-zinc-100"
-        >
-          Change
-        </button>
       </div>
 
       {/* day selector */}

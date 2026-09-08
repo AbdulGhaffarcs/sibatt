@@ -36,19 +36,19 @@ describe("DayView", () => {
   })
 
   it("renders section header with program and semester", () => {
-    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={mockEntries} />)
     expect(screen.getByText(/BSCS/)).toBeInTheDocument()
     expect(screen.getByText(/Sem III/)).toBeInTheDocument()
   })
 
   it("renders class cards for the active day (Monday)", () => {
-    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={mockEntries} />)
     expect(screen.getByText("Data Structures")).toBeInTheDocument()
     expect(screen.getByText("Algorithms")).toBeInTheDocument()
   })
 
   it("does not show classes from other days", () => {
-    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={mockEntries} />)
     expect(screen.queryByText("OS")).not.toBeInTheDocument()
   })
 
@@ -58,34 +58,32 @@ describe("DayView", () => {
       { ...mockEntries[0], id: 12, course: "Islamic Studies", day: "Friday", slot: 4, start_time: "12:10", end_time: "13:00" },
     ]
     vi.setSystemTime(new Date("2025-09-19T08:00:00")) // Friday
-    render(<DayView section={mockSection} entries={fridayEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={fridayEntries} />)
     expect(screen.getAllByText("Islamic Studies")).toHaveLength(2)
-    expect(screen.getByText("11:10")).toBeInTheDocument()
-    expect(screen.getByText("12:10")).toBeInTheDocument()
+    expect(screen.getByText("11:10 AM")).toBeInTheDocument()
+    expect(screen.getByText("12:10 PM")).toBeInTheDocument()
   })
 
   it("shows empty state when no classes on the selected day", () => {
     const wedEntries = mockEntries.filter((e) => e.day === "Friday")
-    render(<DayView section={mockSection} entries={wedEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={wedEntries} />)
     expect(screen.getByText(/No classes/)).toBeInTheDocument()
   })
 
   it("marks a class as up next only during the five minutes before it starts", () => {
     vi.setSystemTime(new Date("2025-09-15T11:06:00"))
-    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={mockEntries} />)
     expect(screen.getByText("Up next")).toBeInTheDocument()
   })
 
   it("does not mark an upcoming class too early", () => {
     vi.setSystemTime(new Date("2025-09-15T10:30:00"))
-    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={vi.fn()} />)
+    render(<DayView section={mockSection} entries={mockEntries} />)
     expect(screen.queryByText("Up next")).not.toBeInTheDocument()
   })
 
-  it("calls onChangeSection when Change button is clicked", () => {
-    const onChange = vi.fn()
-    render(<DayView section={mockSection} entries={mockEntries} onChangeSection={onChange} />)
-    screen.getByText("Change").click()
-    expect(onChange).toHaveBeenCalled()
+  it("does not render a redundant Change action", () => {
+    render(<DayView section={mockSection} entries={mockEntries} />)
+    expect(screen.queryByText("Change")).not.toBeInTheDocument()
   })
 })

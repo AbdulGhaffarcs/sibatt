@@ -21,40 +21,46 @@ const mockEntries: ClassEntry[] = [
 ]
 
 describe("SectionPicker", () => {
-  it("renders sections grouped by program", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} onCancel={vi.fn()} />)
-    expect(screen.getByText("BSCS")).toBeInTheDocument()
-    expect(screen.getByText("BBA")).toBeInTheDocument()
+  it("shows all departments and waits for a department before enabling semester", () => {
+    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
+    expect(screen.getByRole("option", { name: "BSCS" })).toBeInTheDocument()
+    expect(screen.getByRole("option", { name: "BBA" })).toBeInTheDocument()
+    expect(screen.getByLabelText("Semester")).toBeDisabled()
   })
 
-  it("filters sections by query", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} onCancel={vi.fn()} />)
-    const input = screen.getByPlaceholderText("BSCS, BBA, semester…")
-    fireEvent.change(input, { target: { value: "BBA" } })
-    expect(screen.getByText("BBA")).toBeInTheDocument()
-    expect(screen.queryByText("BSCS")).not.toBeInTheDocument()
+  it("progressively filters semester and section choices", () => {
+    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BSCS" } })
+    expect(screen.getByRole("option", { name: "Semester III" })).toBeInTheDocument()
+    expect(screen.queryByRole("option", { name: "Semester I" })).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText("Semester"), { target: { value: "3" } })
+    expect(screen.getByRole("option", { name: "Section A" })).toBeInTheDocument()
+    expect(screen.queryByRole("option", { name: "Section B" })).not.toBeInTheDocument()
   })
 
-  it("calls onSelect when a section is clicked", () => {
+  it("calls onSelect after all three filter values are selected", () => {
     const onSelect = vi.fn()
-    render(<SectionPicker entries={mockEntries} onSelect={onSelect} onCancel={vi.fn()} />)
-    fireEvent.click(screen.getByText("Section A"))
-    expect(onSelect).toHaveBeenCalledWith(
-      expect.objectContaining({ program: "BSCS", semester: 3, section: "A" })
-    )
+    render(<SectionPicker entries={mockEntries} onSelect={onSelect} />)
+    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BSCS" } })
+    fireEvent.change(screen.getByLabelText("Semester"), { target: { value: "3" } })
+    fireEvent.change(screen.getByLabelText("Section"), { target: { value: "A" } })
+    fireEvent.click(screen.getByRole("button", { name: "View timetable" }))
+    expect(onSelect).toHaveBeenCalledWith({ program: "BSCS", semester: 3, section: "A" })
   })
 
-  it("shows empty state when no sections match", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} onCancel={vi.fn()} />)
-    const input = screen.getByPlaceholderText("BSCS, BBA, semester…")
-    fireEvent.change(input, { target: { value: "ZZZZZ" } })
-    expect(screen.getByText("No sections found")).toBeInTheDocument()
+  it("resets dependent choices after the department changes", () => {
+    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BSCS" } })
+    fireEvent.change(screen.getByLabelText("Semester"), { target: { value: "3" } })
+    fireEvent.change(screen.getByLabelText("Section"), { target: { value: "A" } })
+    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BBA" } })
+    expect(screen.getByLabelText("Semester")).toHaveValue("")
+    expect(screen.getByLabelText("Section")).toHaveValue("")
   })
 
-  it("calls onCancel when back button is clicked", () => {
-    const onCancel = vi.fn()
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} onCancel={onCancel} />)
-    fireEvent.click(screen.getByText("←"))
-    expect(onCancel).toHaveBeenCalled()
+  it("does not render a back action when it is the default page control", () => {
+    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
+    expect(screen.queryByLabelText("Back")).not.toBeInTheDocument()
   })
 })

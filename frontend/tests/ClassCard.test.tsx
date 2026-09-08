@@ -40,8 +40,8 @@ describe("ClassCard", () => {
 
   it("renders time range", () => {
     render(<ClassCard entry={mockEntry} />)
-    expect(screen.getByText("11:10")).toBeInTheDocument()
-    expect(screen.getByText("12:00")).toBeInTheDocument()
+    expect(screen.getByText("11:10 AM")).toBeInTheDocument()
+    expect(screen.getByText("12:00 PM")).toBeInTheDocument()
   })
 
   it("renders slot number", () => {

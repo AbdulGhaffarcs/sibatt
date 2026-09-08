@@ -274,5 +274,61 @@ class TestQueryEndpoints(unittest.TestCase):
         self.assertIsInstance(resp.json(), list)
 
 
+class TestSectionFilterOptions(unittest.TestCase):
+    _id = 0
+
+    def setUp(self):
+        _init()
+        type(self)._id += 1
+        self.name = f"FILTER_{type(self)._id}"
+        self.year = 2040 + type(self)._id
+
+        self.program_id = client.post(
+            "/programs", json={"name": self.name}, headers=HEADERS
+        ).json()["id"]
+        self.section_a = client.post(
+            "/sections", json={"program_id": self.program_id, "semester": 2, "section": "A"}, headers=HEADERS
+        ).json()["id"]
+        self.section_b = client.post(
+            "/sections", json={"program_id": self.program_id, "semester": 4, "section": "B"}, headers=HEADERS
+        ).json()["id"]
+        self.course_id = client.post(
+            "/courses", json={"name": f"{self.name}_COURSE"}, headers=HEADERS
+        ).json()["id"]
+        self.teacher_id = client.post(
+            "/teachers", json={"code": f"{self.name}_TEACHER"}, headers=HEADERS
+        ).json()["id"]
+        self.room_id = client.post(
+            "/rooms", json={"code": f"{self.name}_ROOM"}, headers=HEADERS
+        ).json()["id"]
+        self.term_id = client.post(
+            "/terms", json={"year": self.year, "semester": self.name}, headers=HEADERS
+        ).json()["id"]
+        for section_id in (self.section_a, self.section_b):
+            response = client.post("/entries", json={
+                "term_id": self.term_id, "section_id": section_id,
+                "course_id": self.course_id, "teacher_id": self.teacher_id,
+                "room_id": self.room_id, "timeslot_id": 1, "day": "Monday",
+            }, headers=HEADERS)
+            self.assertEqual(response.status_code, 201)
+
+    def test_returns_only_scheduled_and_requested_filter_combinations(self):
+        response = client.get(f"/filters/sections?year={self.year}", headers=HEADERS)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [
+            {"department": self.name, "semester": 2, "section": "A"},
+            {"department": self.name, "semester": 4, "section": "B"},
+        ])
+
+        response = client.get(
+            f"/filters/sections?year={self.year}&department={self.name}&semester=4",
+            headers=HEADERS,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [
+            {"department": self.name, "semester": 4, "section": "B"},
+        ])
+
+
 if __name__ == "__main__":
     unittest.main()
