@@ -21,6 +21,19 @@ const mockEntries: ClassEntry[] = [
 ]
 
 describe("SectionPicker", () => {
+  it("renders recently viewed sections as quick links", () => {
+    const onSelect = vi.fn()
+    render(
+      <SectionPicker
+        entries={mockEntries}
+        recentSections={[{ program: "BSCS", semester: 3, section: "A" }]}
+        onSelect={onSelect}
+      />,
+    )
+    fireEvent.click(screen.getByRole("button", { name: /BSCS.*Section A/ }))
+    expect(onSelect).toHaveBeenCalledWith({ program: "BSCS", semester: 3, section: "A" })
+  })
+
   it("shows all departments and waits for a department before enabling semester", () => {
     render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
     expect(screen.getByRole("option", { name: "BSCS" })).toBeInTheDocument()

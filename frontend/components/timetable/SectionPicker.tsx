@@ -9,11 +9,13 @@ import { SEM_ROMAN } from "@/lib/constants"
 
 interface SectionPickerProps {
   entries: ClassEntry[]
+  recentSections?: Section[]
   onSelect: (section: Section) => void
 }
 
 export default function SectionPicker({
   entries,
+  recentSections = [],
   onSelect,
 }: SectionPickerProps) {
   const [department, setDepartment] = useState("")
@@ -42,6 +44,29 @@ export default function SectionPicker({
       <div className="border-b border-zinc-100 px-4 py-3">
         <span className="text-[15px] font-medium text-zinc-900">Select timetable</span>
       </div>
+
+      {recentSections.length > 0 && (
+        <div className="border-b border-zinc-100 px-4 py-3">
+          <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-zinc-400">
+            Recently viewed
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {recentSections.map((recent) => (
+              <button
+                key={`${recent.program}-${recent.semester}-${recent.section}`}
+                type="button"
+                onClick={() => onSelect(recent)}
+                className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-left text-[12px] text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-zinc-100"
+              >
+                <span className="font-medium">{recent.program}</span>
+                <span className="text-zinc-500">
+                  {` · Sem ${SEM_ROMAN[recent.semester - 1] ?? recent.semester} · Section ${recent.section}`}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 p-4 sm:grid-cols-3">
         <label className="flex flex-col gap-2 text-[13px] font-medium text-zinc-700">
