@@ -15,11 +15,6 @@ import BottomNav                                             from "@/components/
 import type { ClassEntry }                                   from "@/components/timetable/ClassCard"
 import type { Course }                                       from "@/components/search/CourseSearch"
 import type { Section }                                      from "@/lib/filters"
-import {
-  addRecentSection,
-  loadRecentSections,
-  saveRecentSections,
-}                                                            from "@/lib/recent"
 
 // ── view states ──────────────────────────────────────────────────────────────
 type View = "timetable" | "courses" | "rooms"
@@ -37,12 +32,9 @@ export default function Home() {
   // ── ui state ───────────────────────────────────────────────────────────────
   const [view,    setView]    = useState<View>("timetable")
   const [section, setSection] = useState<Section | null>(null)
-  const [recentSections, setRecentSections] = useState<Section[]>([])
 
   // ── load SQLite bundle on mount ────────────────────────────────────────────
   useEffect(() => {
-    setRecentSections(loadRecentSections())
-
     async function init() {
       try {
         await loadDB("/timetable.db")
@@ -59,13 +51,6 @@ export default function Home() {
     }
     init()
   }, [])
-
-  function selectSection(nextSection: Section) {
-    const updated = addRecentSection(recentSections, nextSection)
-    setSection(nextSection)
-    setRecentSections(updated)
-    saveRecentSections(updated)
-  }
 
   // ── filter entries to selected section ────────────────────────────────────
   const sectionEntries: ClassEntry[] = section
@@ -113,11 +98,7 @@ export default function Home() {
       {/* timetable view */}
       {view === "timetable" && (
         <div className="flex w-full max-w-3xl flex-col items-center gap-6">
-          <SectionPicker
-            entries={entries}
-            recentSections={recentSections}
-            onSelect={selectSection}
-          />
+          <SectionPicker entries={entries} onSelect={setSection} />
 
           {section && (
             <DayView section={section} entries={sectionEntries} />
