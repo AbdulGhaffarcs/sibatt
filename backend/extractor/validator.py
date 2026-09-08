@@ -53,7 +53,7 @@ _NOT_TEACHER = frozenset({
 # even when a PDF's vector grid happens to put it in a reconstructed cell.
 _NON_COURSE_TEXT = frozenset({
     "sukkur iba university",
-    "asc timetables",
+    "asc htimetables",
 })
 
 # Placeholder labels present in the exported source PDF. They are not real
