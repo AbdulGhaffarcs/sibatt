@@ -332,6 +332,48 @@ class TestClassifyCellFiltering(unittest.TestCase):
         result = classify_cells(records, term="Fall-2026")
         self.assertEqual(result.entries, [])
 
+class TestFall2026SpanningSlots(unittest.TestCase):
+    """Regression coverage for merged PDF cells spanning multiple slots."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pdf = Path(__file__).resolve().parents[2] / "fall2026.pdf"
+        if not cls.pdf.exists():
+            raise unittest.SkipTest("fall2026.pdf not found")
+
+    def test_bs_v_cs_ai_h_thursday_preserves_spanned_slots(self):
+        from backend.extractor.grid import extract_grid
+        from backend.extractor.parser import parse_page
+
+        document = fitz.open(self.pdf)
+        try:
+            # Page 34 of fall2026.pdf contains BS-V(CS, CS-AI)-H.
+            page = document[33]
+            result = classify_cells(
+                parse_page(page, extract_grid(page)),
+                page=page,
+                page_no=33,
+                term="Fall-2026",
+            )
+        finally:
+            document.close()
+
+        actual = [
+            (entry.slot, entry.course)
+            for entry in result.entries
+            if (
+                entry.program == "BS (CS, CS-AI)"
+                and entry.semester == 5
+                and entry.section == "H"
+                and entry.day == "Thursday"
+            )
+        ]
+
+        self.assertEqual(
+            [slot for slot, _ in actual],
+            [1, 2, 3, 5, 6, 7],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

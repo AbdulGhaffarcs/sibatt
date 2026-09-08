@@ -1,6 +1,8 @@
 // components/timetable/ClassCard.tsx
 // Single class entry card — used inside DayView
 
+import { formatTime12 } from "@/lib/time"
+
 export interface ClassEntry {
   id: number
   course: string
@@ -33,12 +35,12 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
       }`}
     >
       {/* time column */}
-      <div className="flex min-w-[54px] flex-col items-center sm:min-w-[68px]">
-        <span className="font-mono text-[12px] font-medium text-zinc-800">
-          {entry.start_time}
+      <div className="flex min-w-[64px] flex-col items-center sm:min-w-[68px]">
+        <span className="whitespace-nowrap font-mono text-[12px] font-medium text-zinc-800">
+          {formatTime12(entry.start_time)}
         </span>
-        <span className="font-mono text-[11px] text-zinc-400">
-          {entry.end_time}
+        <span className="whitespace-nowrap font-mono text-[11px] text-zinc-400">
+          {formatTime12(entry.end_time)}
         </span>
       </div>
 
