@@ -16,6 +16,7 @@ export interface ClassEntry {
   semester: number
   term: string
   slot: number
+  end_slot?: number
   start_time: string
   end_time: string
   day: string
@@ -28,6 +29,11 @@ interface ClassCardProps {
 }
 
 export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
+  const periodLabel =
+    entry.end_slot && entry.end_slot !== entry.slot
+      ? `P${entry.slot}–P${entry.end_slot}`
+      : `P${entry.slot}`
+
   return (
     <div
       className={`flex gap-3 rounded-xl border bg-white p-3 transition-shadow ${
@@ -39,6 +45,7 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
         <span className="whitespace-nowrap font-mono text-[12px] font-medium text-zinc-800">
           {formatTime12(entry.start_time)}
         </span>
+
         <span className="whitespace-nowrap font-mono text-[11px] text-zinc-400">
           {formatTime12(entry.end_time)}
         </span>
@@ -48,11 +55,12 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
       <div className="w-px bg-zinc-100" />
 
       {/* content */}
-      <div className="flex flex-1 flex-col gap-1 min-w-0 overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
         <div className="flex items-center gap-2">
-          <span className="text-[14px] font-medium text-zinc-900 leading-tight truncate">
+          <span className="truncate text-[14px] font-medium leading-tight text-zinc-900">
             {entry.course}
           </span>
+
           {isNext && (
             <span className="flex-none rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
               Up next
@@ -60,7 +68,7 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-2 mt-0.5">
+        <div className="mt-0.5 flex items-center gap-2">
           {/* room or online badge */}
           {entry.is_online ? (
             <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-600">
@@ -73,16 +81,23 @@ export default function ClassCard({ entry, isNext = false }: ClassCardProps) {
           )}
 
           {/* teacher */}
-          <span className="text-[12px] text-zinc-500 flex items-center gap-1">
-            <svg className="w-3 h-3" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+          <span className="flex items-center gap-1 text-[12px] text-zinc-500">
+            <svg
+              className="h-3 w-3"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="8" cy="5" r="3" />
+              <path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6" />
             </svg>
             {entry.teacher_code}
           </span>
 
-          {/* slot number */}
-          <span className="ml-auto font-mono text-[11px] text-zinc-400">
-            P{entry.slot}
+          {/* slot / merged slot range */}
+          <span className="ml-auto whitespace-nowrap font-mono text-[11px] text-zinc-400">
+            {periodLabel}
           </span>
         </div>
       </div>

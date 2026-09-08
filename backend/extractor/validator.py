@@ -3,7 +3,7 @@
 Handles aSc Timetables export format:
   - Days (Mo,Tu,We,Th,Fr) as row labels in the left column
   - Time slots (1-10) as column headers in the top row
-  - Each page = a section group (e.g., "BBA-I(A,B)")
+  - Each page = JKa section group (e.g., "BBA-I(A,B)")
   - Each cell = section_letter + course_name + room + teacher_code
 """
 
@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Any
 
 import pymupdf
+
+from backend.extractor.grid import LINE_TOLERANCE
 
 _DAYS_FULL = {
     "Mo": "Monday", "Tu": "Tuesday", "We": "Wednesday",
@@ -403,11 +405,9 @@ def _slots_for_cell(
 ) -> list[int]:
     """Return every timetable slot whose header center lies inside the cell.
 
-    aSc Timetables merges adjacent slot cells when one class occupies multiple
-    consecutive periods. Using the merged cell's center assigns such a class
-    to only one period, which loses the first/earlier slot. Header centers give
-    us the actual slot identity, so a merged cell spanning P1+P2 correctly
-    produces [1, 2].
+    aSc Timetables merges adjacent slot cells when one class occupies
+    multiple consecutive periods. A merged PDF cell therefore represents
+    multiple timetable slots, not one slot at its geometric center.
     """
     cell_left = float(cell["x0"])
     cell_right = float(cell["x1"])
@@ -423,24 +423,25 @@ def _slots_for_cell(
     matched = [
         slot_no
         for slot_no, center in slot_centers
-        if cell_left - LINE_TOLERANCE <= center <= cell_right + LINE_TOLERANCE
+        if cell_left - 1.0 <= center <= cell_right + 1.0
     ]
 
     if matched:
         return matched
 
-    # Defensive fallback for unusual PDF geometry where the cell does not
-    # contain a header center due to a tiny coordinate mismatch.
+    # Defensive fallback for unusual PDF geometry.
     cell_center = (cell_left + cell_right) / 2
     nearest_slot = min(
         slot_cols,
         key=lambda slot_no: abs(
-            ((float(slot_cols[slot_no][0]) + float(slot_cols[slot_no][1])) / 2)
+            (
+                float(slot_cols[slot_no][0])
+                + float(slot_cols[slot_no][1])
+            ) / 2
             - cell_center
         ),
     )
     return [nearest_slot]
-
 
 # ── cell parsing ──────────────────────────────────────────────────────────────
 
@@ -944,7 +945,6 @@ def classify_cells(
         # content could not be interpreted as a course.
         if not parsed["course"] or parsed["course"].lower() in _NON_COURSE_TEXT:
             continue
-        start_time, end_time = _SLOT_MAP.get(assigned_slot, ("", ""))
 
         # Keep the class visible, but make incomplete source cells reviewable
         # through the admin flagged-cells endpoint instead of inventing a room.
@@ -956,11 +956,13 @@ def classify_cells(
                 page_no=page_no,
             ))
 
-        # A single PDF cell can span multiple consecutive timetable slots.
-        # Create one EntryData per covered slot so the frontend can display
-        # every period occupied by the class.
+        # A single PDF cell can span multiple timetable slots.
+        # Create one timetable entry for every slot covered by the cell.
         for assigned_slot in assigned_slots:
-            start_time, end_time = _SLOT_MAP.get(assigned_slot, ("", ""))
+            start_time, end_time = _SLOT_MAP.get(
+                assigned_slot,
+                ("", ""),
+            )
 
             entry = EntryData(
                 program=program,
