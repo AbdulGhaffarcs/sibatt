@@ -397,6 +397,50 @@ def _detect_day_rows(page: fitz.Page) -> dict[str, tuple[float, float]]:
         result[full_day] = (boundaries[i], boundaries[i + 1])
     return result
 
+def _slots_for_cell(
+    cell: dict[str, float],
+    slot_cols: dict[int, tuple[float, float]],
+) -> list[int]:
+    """Return every timetable slot whose header center lies inside the cell.
+
+    aSc Timetables merges adjacent slot cells when one class occupies multiple
+    consecutive periods. Using the merged cell's center assigns such a class
+    to only one period, which loses the first/earlier slot. Header centers give
+    us the actual slot identity, so a merged cell spanning P1+P2 correctly
+    produces [1, 2].
+    """
+    cell_left = float(cell["x0"])
+    cell_right = float(cell["x1"])
+
+    slot_centers = sorted(
+        (
+            slot_no,
+            (float(x_left) + float(x_right)) / 2,
+        )
+        for slot_no, (x_left, x_right) in slot_cols.items()
+    )
+
+    matched = [
+        slot_no
+        for slot_no, center in slot_centers
+        if cell_left - LINE_TOLERANCE <= center <= cell_right + LINE_TOLERANCE
+    ]
+
+    if matched:
+        return matched
+
+    # Defensive fallback for unusual PDF geometry where the cell does not
+    # contain a header center due to a tiny coordinate mismatch.
+    cell_center = (cell_left + cell_right) / 2
+    nearest_slot = min(
+        slot_cols,
+        key=lambda slot_no: abs(
+            ((float(slot_cols[slot_no][0]) + float(slot_cols[slot_no][1])) / 2)
+            - cell_center
+        ),
+    )
+    return [nearest_slot]
+
 
 # ── cell parsing ──────────────────────────────────────────────────────────────
 
@@ -845,17 +889,7 @@ def classify_cells(
                 assigned_day = day_name
                 break
 
-        assigned_slot = 0
-        min_dist = float("inf")
-        for slot_no, (x_left, x_right) in slot_cols.items():
-            if x_left <= cx <= x_right:
-                assigned_slot = slot_no
-                break
-            mid = (x_left + x_right) / 2
-            dist = abs(cx - mid)
-            if dist < min_dist:
-                min_dist = dist
-                assigned_slot = slot_no
+        assigned_slots = _slots_for_cell(cell, slot_cols)
 
         lower_text = text.lower()
         if (
@@ -896,11 +930,11 @@ def classify_cells(
             else text
         )
 
-        if not assigned_day or not assigned_slot:
+        if not assigned_day or not assigned_slots:
             result.flagged.append(FlaggedCell(
                 raw_text=text,
                 cell_bbox=json.dumps(cell),
-                flags=f"day={assigned_day or '?'} slot={assigned_slot or '?'}",
+                flags=f"day={assigned_day or '?'} slot={assigned_slots or '?'}",
                 page_no=page_no,
             ))
             continue
@@ -922,21 +956,27 @@ def classify_cells(
                 page_no=page_no,
             ))
 
-        entry = EntryData(
-            program=program,
-            semester=semester,
-            section=section_letter,
-            day=assigned_day,
-            slot=assigned_slot,
-            start_time=start_time,
-            end_time=end_time,
-            course=parsed["course"],
-            teacher_code=parsed["teacher_code"],
-            room=parsed["room"],
-            building=parsed["building"],
-            is_online=parsed["is_online"] == "1",
-            term=term,
-        )
-        result.entries.append(entry)
+        # A single PDF cell can span multiple consecutive timetable slots.
+        # Create one EntryData per covered slot so the frontend can display
+        # every period occupied by the class.
+        for assigned_slot in assigned_slots:
+            start_time, end_time = _SLOT_MAP.get(assigned_slot, ("", ""))
+
+            entry = EntryData(
+                program=program,
+                semester=semester,
+                section=section_letter,
+                day=assigned_day,
+                slot=assigned_slot,
+                start_time=start_time,
+                end_time=end_time,
+                course=parsed["course"],
+                teacher_code=parsed["teacher_code"],
+                room=parsed["room"],
+                building=parsed["building"],
+                is_online=parsed["is_online"] == "1",
+                term=term,
+            )
+            result.entries.append(entry)
 
     return result
