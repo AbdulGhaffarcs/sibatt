@@ -1,32 +1,3 @@
-## Staging deployment
-
-Staging is intentionally separate from production. Deploy the `staging` branch to a separate Vercel project or to a host that runs `staging/Dockerfile`; do not use the production project or database.
-
-### Vercel preview
-
-1. Create a separate Vercel project for staging and add `VERCEL_STAGING_PROJECT_ID` as a GitHub Actions secret. Reuse the organization and token secrets only if they are scoped to both projects.
-2. Enable Vercel Deployment Protection/password protection for that project. The workflow deploys a preview URL, not a production deployment.
-3. Create and push the branch with `git switch -c staging` and `git push -u origin staging`.
-4. Share only the generated preview URL and the Vercel protection password with testers.
-
-The staging build sets `NEXT_PUBLIC_STAGING=true`, emits `Disallow: /`, and adds `X-Robots-Tag: noindex, nofollow, noarchive`. Production builds keep their existing metadata.
-
-### Docker host
-
-For Render, Railway, Fly.io, or another Docker host, deploy from the `staging` branch using `staging/Dockerfile`. Set the variables in `.env.staging.example` as host secrets. The container requires HTTP Basic Auth, serves noindex headers, and uses the separate `slotfinder-staging` database volume from `docker-compose.staging.yml`.
-
-For a local smoke test:
-
-```bash
-cp .env.staging.example .env.staging
-docker compose --env-file .env.staging -f docker-compose.staging.yml up --build
-```
-
-Open `http://localhost:8080` and use the configured Basic Auth credentials. Never reuse production database credentials or the production API key.
-
-### Promotion
-
-After testing, merge `staging` into `main`. The existing production workflow then deploys the production Vercel project. No staging database volume is reused during promotion.
 # SlotFinder
 
 A modern timetable search engine for Sukkur IBA University. Search and filter class schedules by section, course, or room. Built with a Python backend and Next.js frontend, optimized for mobile-first experience.
