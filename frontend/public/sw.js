@@ -1,7 +1,7 @@
 // public/sw.js
 // Minimal service worker: cache-first for static assets, network-first for navigation.
 
-const CACHE_NAME = "slotfinder-v4"
+const CACHE_NAME = "slotfinder-v5"
 const STATIC_ASSETS = [
   "/",
   "/sql-wasm.wasm",
@@ -36,6 +36,13 @@ self.addEventListener("fetch", (event) => {
   // Timetable imports replace this file in place. Fetch it from the network on
   // every page load so an installed app never remains on a previous term.
   if (new URL(request.url).pathname === "/timetable.db") {
+    event.respondWith(fetch(request, { cache: "no-store" }))
+    return
+  }
+
+  // Next.js development chunks use stable URLs. Caching them can make a local
+  // server display an older page even after its source has changed.
+  if (new URL(request.url).pathname.startsWith("/_next/")) {
     event.respondWith(fetch(request, { cache: "no-store" }))
     return
   }

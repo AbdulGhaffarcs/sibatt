@@ -14,3 +14,28 @@
 body {
   @apply antialiased;
 }
+
+@keyframes current-class-pulse {
+  0%, 100% { box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+  50% { box-shadow: 0 0 0 4px rgb(251 191 36 / 0.18), 0 8px 20px rgb(245 158 11 / 0.14); }
+}
+
+@keyframes upcoming-class-pulse {
+  0%, 100% { box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); }
+  50% { box-shadow: 0 0 0 4px rgb(96 165 250 / 0.16), 0 8px 20px rgb(59 130 246 / 0.12); }
+}
+
+@keyframes status-badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+
+.animate-current-class { animation: current-class-pulse 2.1s ease-in-out infinite; }
+.animate-upcoming-class { animation: upcoming-class-pulse 2.6s ease-in-out infinite; }
+.animate-status-badge { animation: status-badge-pulse 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-current-class,
+  .animate-upcoming-class,
+  .animate-status-badge { animation: none; }
+}

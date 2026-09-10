@@ -50,14 +50,16 @@ describe("ClassCard", () => {
   })
 
   it("shows Up next badge when isNext is true", () => {
-    render(<ClassCard entry={mockEntry} isNext={true} />)
+    const { container } = render(<ClassCard entry={mockEntry} isNext={true} />)
     expect(screen.getByText("Up next")).toBeInTheDocument()
+    expect(container.firstElementChild).toHaveClass("animate-upcoming-class")
   })
 
   it("highlights the current class with a gold border and badge", () => {
     const { container } = render(<ClassCard entry={mockEntry} isCurrent={true} />)
     expect(screen.getByText("Current")).toBeInTheDocument()
     expect(container.firstElementChild).toHaveClass("border-amber-400")
+    expect(container.firstElementChild).toHaveClass("animate-current-class")
   })
 
   it("does not show Up next badge when isNext is false", () => {

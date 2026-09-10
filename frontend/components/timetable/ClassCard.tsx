@@ -43,9 +43,9 @@ export default function ClassCard({
     <div
       className={`flex gap-3 rounded-xl border bg-white p-3 transition-shadow ${
         isCurrent
-          ? "border-amber-400 shadow-sm"
+          ? "animate-current-class border-amber-400 shadow-sm"
           : isNext
-            ? "border-blue-300 shadow-sm"
+            ? "animate-upcoming-class border-blue-300 shadow-sm"
             : "border-zinc-200"
       }`}
     >
@@ -71,13 +71,13 @@ export default function ClassCard({
           </span>
 
           {isNext && (
-            <span className="flex-none rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+            <span className="animate-status-badge flex-none rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
               Up next
             </span>
           )}
 
           {isCurrent && (
-            <span className="flex-none rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+            <span className="animate-status-badge flex-none rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
               Current
             </span>
           )}
