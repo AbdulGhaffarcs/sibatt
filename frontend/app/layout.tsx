@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     title: "SlotFinder — Sukkur IBA",
     description: "Search your timetable by section, teacher, or room.",
   },
+  robots:
+    process.env.NEXT_PUBLIC_STAGING === "true"
+      ? { index: false, follow: false, nocache: true }
+      : undefined,
 }
 
 export const viewport: Viewport = {

@@ -1,0 +1,44 @@
+name: slotfinder-staging
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-slotfinder_staging}
+    volumes:
+      - staging_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-slotfinder_staging}
+      API_KEY: ${API_KEY:?set API_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./shared:/app/shared:ro
+
+  frontend:
+    build:
+      context: .
+      dockerfile: staging/Dockerfile
+    environment:
+      BASIC_AUTH_USER: ${BASIC_AUTH_USER:?set BASIC_AUTH_USER}
+      BASIC_AUTH_PASSWORD: ${BASIC_AUTH_PASSWORD:?set BASIC_AUTH_PASSWORD}
+    ports:
+      - "${STAGING_PORT:-8080}:80"
+    depends_on:
+      - backend
+
+volumes:
+  staging_pgdata:
