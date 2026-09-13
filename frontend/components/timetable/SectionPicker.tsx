@@ -38,8 +38,7 @@ export default function SectionPicker({
   }
 
   function chooseSemester(value: string) {
-    const nextSemester = value ? Number(value) : null
-    setSemester(nextSemester)
+    setSemester(value ? Number(value) : null)
   }
 
   function chooseSection(value: string) {
@@ -47,8 +46,6 @@ export default function SectionPicker({
       return
     }
 
-    // Selecting the section is the final action.
-    // Open the timetable immediately.
     onSelect({
       department,
       semester,
@@ -72,9 +69,7 @@ export default function SectionPicker({
           <select
             aria-label="Department"
             value={department}
-            onChange={(event) =>
-              chooseDepartment(event.target.value)
-            }
+            onChange={(event) => chooseDepartment(event.target.value)}
             className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900"
           >
             <option value="">Select department</option>
@@ -94,9 +89,7 @@ export default function SectionPicker({
           <select
             aria-label="Semester"
             value={semester ?? ""}
-            onChange={(event) =>
-              chooseSemester(event.target.value)
-            }
+            onChange={(event) => chooseSemester(event.target.value)}
             disabled={!department}
             className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
           >
@@ -117,9 +110,7 @@ export default function SectionPicker({
           <select
             aria-label="Section"
             value=""
-            onChange={(event) =>
-              chooseSection(event.target.value)
-            }
+            onChange={(event) => chooseSection(event.target.value)}
             disabled={semester === null}
             className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
           >

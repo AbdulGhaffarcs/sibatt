@@ -21,10 +21,9 @@ export interface SectionFilterSelection {
 }
 
 /**
- * Canonical department names shown to users.
+ * Canonical department order shown to users.
  *
- * The timetable parser intentionally preserves the original program strings.
- * This layer converts those source-specific names into stable UI categories.
+ * The raw PDF/program names are normalized into these categories.
  */
 export const DEPARTMENT_ORDER = [
   "CS",
@@ -47,34 +46,31 @@ export const DEPARTMENT_ORDER = [
 export type Department = (typeof DEPARTMENT_ORDER)[number]
 
 /**
- * Maps timetable parser program names to the canonical department shown
- * in the UI.
+ * Raw program names from the timetable → canonical UI department.
  *
- * Keep this mapping in one place. Do not duplicate it in page.tsx,
- * SectionPicker.tsx, db.ts, or the backend.
+ * The CS undergraduate family intentionally collapses into one "CS"
+ * department. Sections then distinguish the cohorts.
  */
 const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
-  // Computer Science family
+  // ── Computer Science ─────────────────────────────────────────────────────
   BS: "CS",
   "BS (CS)": "CS",
   "BS (AI)": "CS",
   "BS (CS-AI)": "CS",
   "BS (SE)": "CS",
 
-  // Accounting & Finance
+  // ── Other undergraduate programs ──────────────────────────────────────────
   "BS (A&F)": "A&F",
-
-  // Other BS departments
   "BS (Economics)": "Economics",
   "BS (Maths)": "Mathematics",
   "BS (Media)": "Media",
   "BS (PE&SS)": "PE&SS",
 
-  // Business
+  // ── Business ──────────────────────────────────────────────────────────────
   BBA: "BBA",
   MBA: "MBA",
 
-  // Engineering
+  // ── Engineering ──────────────────────────────────────────────────────────
   BE: "BE",
   "BE (CS)": "BE",
   "BE (CSE)": "BE",
@@ -84,11 +80,11 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   "ME (EC)": "ME",
   "ME (EE)": "ME",
 
-  // Education
+  // ── Education ─────────────────────────────────────────────────────────────
   "B Ed": "B.Ed",
   BEd: "B.Ed",
 
-  // Postgraduate
+  // ── Postgraduate ─────────────────────────────────────────────────────────
   MS: "MS",
   "MS (AI)": "MS",
   "MS (CS)": "MS",
@@ -102,15 +98,15 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   "PhD (EE)": "PhD",
   "PhD (Mgt)": "PhD",
 
-  // Special intake
+  // ── Special intake ───────────────────────────────────────────────────────
   "Buffer Batch": "Buffer Batch",
 }
 
 /**
- * Convert a raw timetable program into the canonical user-facing department.
+ * Convert a raw timetable program into the canonical department used by the UI.
  *
- * Unknown programs are intentionally omitted instead of silently assigning
- * them to a wrong department.
+ * Unknown values return null rather than being silently assigned to the
+ * wrong department.
  */
 export function normalizeDepartment(program: string): Department | null {
   return PROGRAM_TO_DEPARTMENT[program.trim()] ?? null
@@ -132,7 +128,7 @@ function departmentRank(department: string): number {
 }
 
 /**
- * Return entries belonging to a canonical department.
+ * Return all timetable entries belonging to a canonical department.
  */
 export function entriesForDepartment(
   entries: ClassEntry[],
@@ -144,16 +140,15 @@ export function entriesForDepartment(
 }
 
 /**
- * Derive filter choices from the same active-term SQLite records used by
- * the timetable.
- *
- * Filtering is cumulative:
+ * Build the choices available to the progressive timetable picker.
  *
  * Department
  *     ↓
  * Semester
  *     ↓
  * Section
+ *
+ * Each level is constrained by the level before it.
  */
 export function getSectionFilterOptions(
   entries: ClassEntry[],
@@ -195,19 +190,11 @@ export function getSectionFilterOptions(
 
   const sections = uniqueSorted(
     semesterEntries.map((entry) => entry.section),
-    (a, b) => {
-      const numericA = Number(a)
-      const numericB = Number(b)
-
-      if (!Number.isNaN(numericA) && !Number.isNaN(numericB)) {
-        return numericA - numericB
-      }
-
-      return a.localeCompare(b, undefined, {
+    (a, b) =>
+      a.localeCompare(b, undefined, {
         numeric: true,
         sensitivity: "base",
-      })
-    },
+      }),
   )
 
   return {
