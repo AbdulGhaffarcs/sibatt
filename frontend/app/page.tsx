@@ -11,6 +11,7 @@ import CourseSearch from "@/components/search/CourseSearch"
 import RoomSearch from "@/components/search/RoomSearch"
 import SectionPicker from "@/components/timetable/SectionPicker"
 import BottomNav from "@/components/ui/BottomNav"
+import CreatorsFooter from "@/components/ui/CreatorsFooter"
 import type { ClassEntry } from "@/components/timetable/ClassCard"
 import type { Course } from "@/components/search/CourseSearch"
 import {
@@ -112,7 +113,7 @@ export default function Home() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-3 pt-4 pb-24 sm:px-6 sm:pt-6">
+    <main className="flex min-h-screen flex-col items-center px-3 pt-4 pb-28 sm:px-6 sm:pt-6">
       {view === "timetable" &&
         (section ? (
           <DayView
@@ -142,6 +143,8 @@ export default function Home() {
         active={view}
         onChange={setView}
       />
+
+      <CreatorsFooter />
     </main>
   )
 }
