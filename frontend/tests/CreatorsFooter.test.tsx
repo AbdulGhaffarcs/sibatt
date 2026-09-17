@@ -7,13 +7,13 @@ describe("CreatorsFooter", () => {
     render(<CreatorsFooter />)
 
     expect(screen.getByText("Made with love by")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Abdul" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Ghaffar" })).toHaveAttribute(
       "href",
       "https://github.com/AbdulGhaffarcs",
     )
     expect(screen.getByRole("link", { name: "Qasim" })).toHaveAttribute(
       "href",
-      "https://github.com/qasimio",
+      "https://qasimio.me",
     )
   })
 })

@@ -1,6 +1,6 @@
 const creators = [
-  { name: "Abdul", url: "https://github.com/AbdulGhaffarcs" },
-  { name: "Qasim", url: "https://github.com/qasimio" },
+  { name: "Ghaffar", url: "https://github.com/AbdulGhaffarcs" },
+  { name: "Qasim", url: "https://qasimio.me" },
 ]
 
 export default function CreatorsFooter() {

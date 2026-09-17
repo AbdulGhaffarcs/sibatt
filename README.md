@@ -101,7 +101,7 @@ python3 -m http.server 3000 --directory out  # Serve the static build
 
 | Developer | GitHub |
 |-----------|--------|
-| Abdul | [@AbdulGhaffarcs](https://github.com/AbdulGhaffarcs) |
+| Ghaffar | [@AbdulGhaffarcs](https://github.com/AbdulGhaffarcs) |
 | Qasim | [@qasimio](https://github.com/qasimio) |
 
 ## 📝 License
