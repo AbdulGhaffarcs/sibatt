@@ -99,10 +99,10 @@ python3 -m http.server 3000 --directory out  # Serve the static build
 
 ## 👥 Team
 
-| Developer | GitHub |
-|-----------|--------|
-| Ghaffar | [@AbdulGhaffarcs](https://github.com/AbdulGhaffarcs) |
-| Qasim | [@qasimio](https://github.com/qasimio) |
+| Developer | GitHub | Portfolio |
+|-----------|--------|-----------|
+| Ghaffar | [@AbdulGhaffarcs](https://github.com/AbdulGhaffarcs) | [Abdul Ghaffar](https://abdulghaffarcs.vercel.app) |
+| Qasim | [@qasimio](https://github.com/qasimio) | [Qasim Sethar](https://qasimio.me) |
 
 ## 📝 License
 
