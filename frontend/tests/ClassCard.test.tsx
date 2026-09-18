@@ -38,6 +38,11 @@ describe("ClassCard", () => {
     expect(screen.getByText("R-305")).toBeInTheDocument()
   })
 
+  it("renders the building with a physical room", () => {
+    render(<ClassCard entry={mockEntry} />)
+    expect(screen.getByText("B-II")).toBeInTheDocument()
+  })
+
   it("renders time range", () => {
     render(<ClassCard entry={mockEntry} />)
     expect(screen.getByText("11:10 AM")).toBeInTheDocument()

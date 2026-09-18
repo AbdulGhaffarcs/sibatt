@@ -5,7 +5,7 @@ import type { ClassEntry }        from "@/components/timetable/ClassCard"
 import ClassCard                  from "@/components/timetable/ClassCard"
 import DayTabs                    from "@/components/ui/DayTabs"
 import { DAY_FULL_KEYS }          from "@/lib/constants"
-import { searchScore }             from "@/lib/search"
+import { deduplicateEntries, searchScore } from "@/lib/search"
 
 export interface Course {
   name:    string
@@ -35,9 +35,11 @@ export default function CourseSearch({ courses }: CourseSearchProps) {
   }, [courses, query])
 
   if (selected) {
-    const dayEntries = selected.entries
-      .filter((e) => e.day === DAY_FULL_KEYS[dayIdx])
-      .sort((a, b) => a.slot - b.slot)
+    const dayEntries = deduplicateEntries(
+      selected.entries
+        .filter((e) => e.day === DAY_FULL_KEYS[dayIdx])
+        .sort((a, b) => a.slot - b.slot),
+    )
 
     return (
       <div className="flex w-full max-w-xl flex-col gap-4">

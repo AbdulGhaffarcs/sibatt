@@ -90,9 +90,17 @@ export default function ClassCard({
               Online
             </span>
           ) : (
-            <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600">
-              {entry.room || "Room TBA"}
-            </span>
+            <>
+              <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-600">
+                {entry.room || "Room TBA"}
+              </span>
+
+              {entry.building && (
+                <span className="rounded-md bg-zinc-50 px-2 py-0.5 text-[11px] text-zinc-500">
+                  {entry.building}
+                </span>
+              )}
+            </>
           )}
 
           {/* teacher */}

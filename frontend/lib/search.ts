@@ -3,6 +3,34 @@
 
 import type { FullEntry } from "@/lib/db"
 import type { Course }    from "@/components/search/CourseSearch"
+import type { ClassEntry } from "@/components/timetable/ClassCard"
+
+export function deduplicateEntries<T extends ClassEntry>(entries: T[]): T[] {
+  const seen = new Set<string>()
+
+  return entries.filter((entry) => {
+    const key = [
+      entry.day,
+      entry.slot,
+      entry.start_time,
+      entry.end_time,
+      entry.course,
+      entry.teacher_code,
+      entry.teacher_name,
+      entry.teacher_dept,
+      entry.room,
+      entry.building,
+      entry.section,
+      entry.semester,
+      entry.term,
+      entry.is_online,
+    ].join("\u001f")
+
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 export function normalizeCourseName(value: string): string {
   return value
@@ -44,7 +72,7 @@ export function searchScore(value: string, query: string): number | null {
 export function buildCourseIndex(entries: FullEntry[]): Course[] {
   const map = new Map<string, Course>()
 
-  for (const entry of entries) {
+  for (const entry of deduplicateEntries(entries)) {
     const name = normalizeCourseName(entry.course)
     if (!name) continue
     if (!map.has(name)) {

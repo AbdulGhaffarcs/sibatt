@@ -47,6 +47,16 @@ describe("DayView", () => {
     expect(screen.getByText("Algorithms")).toBeInTheDocument()
   })
 
+  it("renders duplicate source rows only once", () => {
+    render(
+      <DayView
+        section={mockSection}
+        entries={[mockEntries[0], { ...mockEntries[0], id: 99, program: "BS (CS-AI)" }]}
+      />,
+    )
+    expect(screen.getAllByText("Data Structures")).toHaveLength(1)
+  })
+
   it("does not show classes from other days", () => {
     render(<DayView section={mockSection} entries={mockEntries} />)
     expect(screen.queryByText("OS")).not.toBeInTheDocument()

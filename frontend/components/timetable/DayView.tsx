@@ -9,6 +9,7 @@ import type { Section } from "@/lib/filters"
 import ClassCard from "@/components/timetable/ClassCard"
 import DaySelector, { type Day } from "@/components/timetable/DaySelector"
 import { SEM_ROMAN, DAY_FULL } from "@/lib/constants"
+import { deduplicateEntries } from "@/lib/search"
 
 function todayKey(): Day {
   const keys: Day[] = ["Mo", "Tu", "We", "Th", "Fr"]
@@ -104,9 +105,11 @@ export default function DayView({
 
   const dayEntries = useMemo(
     () =>
-      entries
-        .filter((entry) => entry.day === fullDay)
-        .sort((a, b) => a.slot - b.slot),
+      deduplicateEntries(
+        entries
+          .filter((entry) => entry.day === fullDay)
+          .sort((a, b) => a.slot - b.slot),
+      ),
     [entries, fullDay],
   )
 
@@ -158,7 +161,9 @@ export default function DayView({
           </div>
 
           <div className="truncate text-[18px] font-semibold leading-tight text-zinc-900">
-            Sem {SEM_ROMAN[section.semester - 1] ?? section.semester}
+            {section.semester === 0
+              ? "Additional"
+              : `Sem ${SEM_ROMAN[section.semester - 1] ?? section.semester}`}
             {" "}— Section {section.section}
           </div>
         </div>

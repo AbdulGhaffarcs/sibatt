@@ -8,7 +8,7 @@ import type { ClassEntry }    from "@/components/timetable/ClassCard"
 import ClassCard              from "@/components/timetable/ClassCard"
 import DayTabs                from "@/components/ui/DayTabs"
 import { DAY_FULL_KEYS }      from "@/lib/constants"
-import { searchScore }         from "@/lib/search"
+import { deduplicateEntries, searchScore } from "@/lib/search"
 
 interface RoomSearchProps {
   entries: ClassEntry[]
@@ -35,7 +35,7 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
 
   const roomCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    entries.forEach((e) => {
+    deduplicateEntries(entries).forEach((e) => {
       counts[e.room] = (counts[e.room] ?? 0) + 1
     })
     return counts
@@ -43,9 +43,11 @@ export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
 
   // ── room schedule view ────────────────────────────────────────────────────
   if (selected) {
-    const dayEntries = entries
-      .filter((e) => e.room === selected && e.day === DAY_FULL_KEYS[dayIdx])
-      .sort((a, b) => a.slot - b.slot)
+    const dayEntries = deduplicateEntries(
+      entries
+        .filter((e) => e.room === selected && e.day === DAY_FULL_KEYS[dayIdx])
+        .sort((a, b) => a.slot - b.slot),
+    )
 
     return (
       <div className="flex w-full max-w-xl flex-col gap-4">

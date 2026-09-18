@@ -18,6 +18,11 @@ const mockCourses: Course[] = [
   { name: "Calculus", entries: [{ ...baseEntry, id: 3, course: "Calculus" }] },
 ]
 
+const duplicateCourse: Course = {
+  name: "Data Structures",
+  entries: [baseEntry, { ...baseEntry, id: 99, program: "BS (CS-AI)" }],
+}
+
 describe("CourseSearch", () => {
   it("renders all courses", () => {
     render(<CourseSearch courses={mockCourses} />)
@@ -51,5 +56,11 @@ describe("CourseSearch", () => {
   it("shows entry count per course", () => {
     render(<CourseSearch courses={mockCourses} />)
     expect(screen.getAllByText(/1 slot/)).toHaveLength(3)
+  })
+
+  it("shows duplicate source slots only once in course details", () => {
+    render(<CourseSearch courses={[duplicateCourse]} />)
+    fireEvent.click(screen.getByText("Data Structures"))
+    expect(screen.getAllByText("Data Structures")).toHaveLength(1)
   })
 })

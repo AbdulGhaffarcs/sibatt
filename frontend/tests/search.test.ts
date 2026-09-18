@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { buildCourseIndex } from "@/lib/search"
+import { buildCourseIndex, deduplicateEntries } from "@/lib/search"
 import type { FullEntry } from "@/lib/db"
 
 const mockEntries: FullEntry[] = [
@@ -27,6 +27,14 @@ const mockEntries: FullEntry[] = [
 ]
 
 describe("buildCourseIndex", () => {
+  it("does not count duplicate source rows as extra course slots", () => {
+    const courses = buildCourseIndex([
+      mockEntries[0],
+      { ...mockEntries[0], id: 99, program: "BS (CS-AI)" },
+    ])
+    expect(courses[0].entries).toHaveLength(1)
+  })
+
   it("groups entries by course name", () => {
     const courses = buildCourseIndex(mockEntries)
     expect(courses).toHaveLength(2)
@@ -48,5 +56,11 @@ describe("buildCourseIndex", () => {
   it("returns empty array for empty input", () => {
     const courses = buildCourseIndex([])
     expect(courses).toHaveLength(0)
+  })
+})
+
+describe("deduplicateEntries", () => {
+  it("preserves distinct slots for the same course", () => {
+    expect(deduplicateEntries(mockEntries)).toHaveLength(3)
   })
 })
