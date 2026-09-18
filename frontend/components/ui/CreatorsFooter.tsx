@@ -10,7 +10,7 @@ export default function CreatorsFooter() {
         <span>Made with love by</span>{" "}
         {creators.map((creator, index) => (
           <span key={creator.name}>
-            {index > 0 && index === creators.length - 1 ? "and " : index > 0 ? ", " : ""}
+            {index > 0 && index === creators.length - 1 ? " and " : index > 0 ? ", " : ""}
             <a
               href={creator.url}
               target="_blank"
