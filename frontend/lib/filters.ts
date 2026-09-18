@@ -41,6 +41,7 @@ export const DEPARTMENT_ORDER = [
   "MPhil",
   "PhD",
   "Buffer Batch",
+  "Additional",
 ] as const
 
 export type Department = (typeof DEPARTMENT_ORDER)[number]
@@ -100,6 +101,7 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
 
   // ── Special intake ───────────────────────────────────────────────────────
   "Buffer Batch": "Buffer Batch",
+  ADDITIONAL: "Additional",
 }
 
 /**
@@ -157,7 +159,7 @@ export function getSectionFilterOptions(
   const validEntries = entries.filter(
     (entry) =>
       entry.program &&
-      entry.semester &&
+      entry.semester >= 0 &&
       entry.section &&
       normalizeDepartment(entry.program) !== null,
   )

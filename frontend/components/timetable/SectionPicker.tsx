@@ -97,7 +97,9 @@ export default function SectionPicker({
 
             {options.semesters.map((value) => (
               <option key={value} value={value}>
-                Semester {SEM_ROMAN[value - 1] ?? value}
+                {value === 0
+                  ? "Additional"
+                  : `Semester ${SEM_ROMAN[value - 1] ?? value}`}
               </option>
             ))}
           </select>

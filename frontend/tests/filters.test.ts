@@ -49,6 +49,10 @@ describe("normalizeDepartment", () => {
   it("returns null for unknown programs", () => {
     expect(normalizeDepartment("something-new")).toBeNull()
   })
+
+  it("exposes additional extracted courses", () => {
+    expect(normalizeDepartment("ADDITIONAL")).toBe("Additional")
+  })
 })
 
 describe("getSectionFilterOptions", () => {
@@ -205,5 +209,21 @@ describe("getSectionFilterOptions", () => {
       "BBA",
       "Economics",
     ])
+  })
+
+  it("includes semester-zero additional sections", () => {
+    const result = getSectionFilterOptions(
+      [{
+        id: 8,
+        program: "ADDITIONAL",
+        semester: 0,
+        section: "DOBA",
+        course: "Artificial Intelligence for Business and Economics",
+      }] as ClassEntry[],
+      { department: "Additional", semester: null },
+    )
+
+    expect(result.semesters).toEqual([0])
+    expect(result.sections).toEqual(["DOBA"])
   })
 })
