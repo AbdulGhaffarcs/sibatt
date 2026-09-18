@@ -58,7 +58,7 @@ class Teacher(Base):
 class Room(Base):
     __tablename__ = "rooms"
     __table_args__ = (
-        UniqueConstraint("code"),
+        UniqueConstraint("code", "building"),
     )
 
     id:       Mapped[int]  = mapped_column(Integer, primary_key=True)

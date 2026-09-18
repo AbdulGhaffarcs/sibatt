@@ -33,6 +33,9 @@ class TestParseRoom(unittest.TestCase):
     def test_standard_room(self):
         self.assertEqual(parse_room("R-305,B-II"), ("R-305", "B-II", False))
 
+    def test_room_building_is_preserved(self):
+        self.assertEqual(parse_room("R-107,B-V"), ("R-107", "B-V", False))
+
     def test_underscore_room(self):
         self.assertEqual(parse_room("R_305,B_II"), ("R-305", "B-II", False))
 

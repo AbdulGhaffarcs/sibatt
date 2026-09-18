@@ -402,9 +402,9 @@ def list_rooms(search: Optional[str] = None, db: Session = Depends(get_db)):
 
 @router.post("/rooms", response_model=RoomOut, status_code=201)
 def create_room(data: RoomCreate, db: Session = Depends(get_db)):
-    existing = db.query(Room).filter_by(code=data.code).first()
+    existing = db.query(Room).filter_by(code=data.code, building=data.building).first()
     if existing:
-        raise HTTPException(409, "Room code already exists")
+        raise HTTPException(409, "Room with this building already exists")
     obj = Room(**data.model_dump())
     db.add(obj)
     db.commit()

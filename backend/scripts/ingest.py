@@ -145,7 +145,7 @@ def ingest_pdf(
                 room = _get_or_create(
                     db, Room,
                     {"code": entry_data.room, "building": entry_data.building},
-                    {"code": entry_data.room},
+                    {"code": entry_data.room, "building": entry_data.building},
                     entity_caches[Room],
                 )
                 timeslot = db.query(Timeslot).filter_by(slot_no=entry_data.slot).first()
