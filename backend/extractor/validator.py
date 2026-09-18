@@ -900,7 +900,9 @@ def classify_cells(
         ):
             continue
 
-        section_letter = str(rec.get("section_marker") or _extract_section_letter(text)).strip()
+        marker_section = str(rec.get("section_marker") or "").strip()
+        text_section = _extract_section_letter(text)
+        section_letter = marker_section or text_section
 
         if section_letter in _DUMMY_SECTIONS:
             continue
@@ -909,10 +911,14 @@ def classify_cells(
             # A course title can begin with an uppercase abbreviation (such
             # as HR or OB), which the loose cell parser can mistake for a
             # section. The page heading is authoritative when it declares
-            # sections, so retain only labels that appear there.
+            # sections, so retain only labels that appear there. The parser's
+            # marker can be polluted by teacher codes, so prefer the explicit
+            # cell label when that marker is not one of the declared sections.
             section_letter = (
                 section_letter
                 if section_letter in sections_from_header
+                else text_section
+                if text_section in sections_from_header
                 else sections_from_header[0]
             )
         else:

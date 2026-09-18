@@ -202,7 +202,7 @@ class TestFall2025RegressionFixture(unittest.TestCase):
         expected = json.loads(
             (Path(__file__).parent / "fixtures" / "bba_i_a_friday.json").read_text()
         )
-        document = fitz.open(self.pdf)
+        document = pymupdf.open(self.pdf)
         try:
             page = document[0]
             result = classify_cells(parse_page(page, extract_grid(page)), page=page, term="Fall-2025")
@@ -345,7 +345,7 @@ class TestFall2026SpanningSlots(unittest.TestCase):
         from backend.extractor.grid import extract_grid
         from backend.extractor.parser import parse_page
 
-        document = fitz.open(self.pdf)
+        document = pymupdf.open(self.pdf)
         try:
             # Page 34 of fall2026.pdf contains BS-V(CS, CS-AI)-H.
             page = document[33]
@@ -372,6 +372,42 @@ class TestFall2026SpanningSlots(unittest.TestCase):
         self.assertEqual(
             [slot for slot, _ in actual],
             [1, 2, 3, 5, 6, 7],
+        )
+
+    def test_bba_v_section_c_keeps_cells_with_noisy_markers(self):
+        from backend.extractor.grid import extract_grid
+        from backend.extractor.parser import parse_page
+
+        document = pymupdf.open(self.pdf)
+        try:
+            # Page 5 contains BBA-V(A,B,C). Some B/C cells have parser markers
+            # polluted by teacher codes, so the explicit cell label must win.
+            page = document[4]
+            result = classify_cells(
+                parse_page(page, extract_grid(page)),
+                page=page,
+                page_no=4,
+                term="Fall-2026",
+            )
+        finally:
+            document.close()
+
+        actual = {
+            (entry.day, entry.slot)
+            for entry in result.entries
+            if entry.section == "C"
+        }
+
+        self.assertEqual(
+            actual,
+            {
+                ("Monday", 1), ("Monday", 2), ("Monday", 3),
+                ("Monday", 5), ("Monday", 6), ("Monday", 7),
+                ("Tuesday", 1), ("Tuesday", 2), ("Tuesday", 3),
+                ("Wednesday", 1), ("Wednesday", 2),
+                ("Thursday", 1), ("Thursday", 2), ("Thursday", 3),
+                ("Friday", 1), ("Friday", 2), ("Friday", 3),
+            },
         )
 
 
