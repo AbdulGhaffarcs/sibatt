@@ -27,6 +27,7 @@ export interface SectionFilterSelection {
  */
 export const DEPARTMENT_ORDER = [
   "CS",
+  "CSE",
   "BBA",
   "A&F",
   "Economics",
@@ -74,7 +75,7 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   // ── Engineering ──────────────────────────────────────────────────────────
   BE: "BE",
   "BE (CS)": "BE",
-  "BE (CSE)": "BE",
+  "BE (CSE)": "CSE",
   "BE (EE)": "BE",
 
   ME: "ME",

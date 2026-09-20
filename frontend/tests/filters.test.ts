@@ -29,7 +29,7 @@ describe("normalizeDepartment", () => {
     expect(normalizeDepartment("BEd")).toBe("B.Ed")
 
     expect(normalizeDepartment("BE (CS)")).toBe("BE")
-    expect(normalizeDepartment("BE (CSE)")).toBe("BE")
+    expect(normalizeDepartment("BE (CSE)")).toBe("CSE")
     expect(normalizeDepartment("BE (EE)")).toBe("BE")
 
     expect(normalizeDepartment("ME (EC)")).toBe("ME")
