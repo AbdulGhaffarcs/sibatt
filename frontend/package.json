@@ -12,6 +12,7 @@
     "postinstall": "node -e \"require('fs').copyFileSync('node_modules/sql.js/dist/sql-wasm.wasm','public/sql-wasm.wasm')\""
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18",
