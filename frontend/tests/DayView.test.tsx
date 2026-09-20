@@ -42,9 +42,18 @@ describe("DayView", () => {
   })
 
   it("renders class cards for the active day (Monday)", () => {
-    render(<DayView section={mockSection} entries={mockEntries} />)
+    render(
+      <DayView
+        section={mockSection}
+        entries={[
+          ...mockEntries,
+          { ...mockEntries[0], id: 10, course: "Late Lab", slot: 10, start_time: "18:40", end_time: "20:00" },
+        ]}
+      />,
+    )
     expect(screen.getByText("Data Structures")).toBeInTheDocument()
     expect(screen.getByText("Algorithms")).toBeInTheDocument()
+    expect(screen.getByText("Late Lab")).toBeInTheDocument()
   })
 
   it("renders duplicate source rows only once", () => {
@@ -74,10 +83,10 @@ describe("DayView", () => {
     expect(screen.getByText("12:10 PM")).toBeInTheDocument()
   })
 
-  it("shows empty state when no classes on the selected day", () => {
+  it("does not render empty timetable slots", () => {
     const wedEntries = mockEntries.filter((e) => e.day === "Friday")
     render(<DayView section={mockSection} entries={wedEntries} />)
-    expect(screen.getByText(/No classes/)).toBeInTheDocument()
+    expect(screen.queryByText("P10")).not.toBeInTheDocument()
   })
 
   it("marks a class as up next only during the five minutes before it starts", () => {

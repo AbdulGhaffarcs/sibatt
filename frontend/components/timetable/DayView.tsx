@@ -183,22 +183,16 @@ export default function DayView({
       />
 
       {/* class cards */}
-      {displayEntries.length === 0 ? (
-        <div className="py-12 text-center text-[13px] text-zinc-400">
-          No classes on {fullDay}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {displayEntries.map((entry, index) => (
-            <ClassCard
-              key={`${entry.id}-${entry.slot}`}
-              entry={entry}
-              isCurrent={index === currentIdx}
-              isNext={index === nextIdx}
-            />
-          ))}
-        </div>
-      )}
+      <div className="flex flex-col gap-2">
+        {displayEntries.map((entry, index) => (
+          <ClassCard
+            key={`${entry.id}-${entry.slot}`}
+            entry={entry}
+            isCurrent={index === currentIdx}
+            isNext={index === nextIdx}
+          />
+        ))}
+      </div>
     </div>
   )
 }
