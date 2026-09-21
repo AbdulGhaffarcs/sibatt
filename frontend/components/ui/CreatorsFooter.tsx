@@ -1,13 +1,13 @@
 const creators = [
   { name: "Ghaffar", url: "https://github.com/AbdulGhaffarcs" },
-  { name: "Qasim", url: "https://qasimio.me" },
+  { name: "Qasim", url: "https://github.com/qasimio" },
 ]
 
 export default function CreatorsFooter() {
   return (
     <footer className="fixed inset-x-0 bottom-[4.55rem] z-40 text-center text-xs text-zinc-500">
       <p>
-        <span>Made with love by</span>{" "}
+        <span>Made with ❤️ by</span>{" "}
         {creators.map((creator, index) => (
           <span key={creator.name}>
             {index > 0 && index === creators.length - 1 ? " and " : index > 0 ? ", " : ""}

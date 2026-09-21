@@ -7,22 +7,22 @@ import { SWRegister } from "@/components/ui/SWRegister"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SlotFinder — Sukkur IBA",
+  title: "Sibatt — Sukkur IBA",
   description: "Search your timetable by section, teacher, or room. Mobile-first timetable search engine for Sukkur IBA University.",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "SlotFinder — Sukkur IBA",
+    title: "Sibatt — Sukkur IBA",
     description: "Search your timetable by section, teacher, or room.",
-    siteName: "SlotFinder",
+    siteName: "Sibatt",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary",
-    title: "SlotFinder — Sukkur IBA",
+    title: "Sibatt — Sukkur IBA",
     description: "Search your timetable by section, teacher, or room.",
   },
   robots:

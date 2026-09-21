@@ -1,4 +1,4 @@
-name: slotfinder-staging
+name: sibatt-staging
 
 services:
   db:
@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-slotfinder_staging}
+      POSTGRES_DB: ${POSTGRES_DB:-sibatt_staging}
     volumes:
       - staging_pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -20,7 +20,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-slotfinder_staging}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-sibatt_staging}
       API_KEY: ${API_KEY:?set API_KEY}
     depends_on:
       db:

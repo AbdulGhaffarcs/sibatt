@@ -1,4 +1,4 @@
-# SlotFinder Backend
+# Sibatt Backend
 
 The backend provides the admin API and exports the timetable database used by the frontend. Run all commands from the repository root, not from `backend/`.
 

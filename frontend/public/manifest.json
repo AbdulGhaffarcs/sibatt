@@ -1,6 +1,6 @@
 {
-  "name": "SlotFinder — Sukkur IBA",
-  "short_name": "SlotFinder",
+  "name": "Sibatt — Sukkur IBA",
+  "short_name": "Sibatt",
   "description": "Search your timetable by section,courses or room.",
   "start_url": "/",
   "display": "standalone",

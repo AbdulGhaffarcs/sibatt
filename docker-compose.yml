@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: slotfinder
+      POSTGRES_DB: sibatt
     ports:
       - "5432:5432"
     volumes:
@@ -22,7 +22,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/slotfinder
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/sibatt
       API_KEY: dev-api-key-change-me
     depends_on:
       db:

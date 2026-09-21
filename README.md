@@ -1,4 +1,4 @@
-# SlotFinder
+# sibatt
 
 A modern timetable search engine for Sukkur IBA University. Search and filter class schedules by section, course, or room. Built with a Python backend and Next.js frontend, optimized for mobile-first experience.
 
@@ -14,7 +14,7 @@ A modern timetable search engine for Sukkur IBA University. Search and filter cl
 The project is structured as a monorepo with three main components:
 
 ```
-slotfinder/
+sibatt/
 ├── backend/       # Python (63.5%)
 │   ├── PDF extraction & processing
 │   ├── SQLite database management
@@ -83,7 +83,7 @@ Open <http://localhost:3000>.
 From the repository root, with the virtual environment activated:
 
 ```bash
-python -m backend.scripts.ingest /home/UserX/slot-finder/fall2026.pdf --year 2026 --semester Fall --replace --export
+python -m backend.scripts.ingest /home/UserX/sibatt/fall2026.pdf --year 2026 --semester Fall --replace --export
 ```
 
 This replaces previously imported timetable data, preserves shared timeslots, and writes the bundle read by the frontend. See [the backend guide](backend/README.md) for reset and API commands.

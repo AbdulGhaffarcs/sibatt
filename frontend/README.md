@@ -1,4 +1,4 @@
-# SlotFinder Frontend
+# Sibatt Frontend
 
 Next.js 14 static site for searching university timetables. Runs entirely client-side using sql.js.
 

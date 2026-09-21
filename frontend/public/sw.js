@@ -1,7 +1,7 @@
 // public/sw.js
 // Minimal service worker: cache-first for static assets, network-first for navigation.
 
-const CACHE_NAME = "slotfinder-v5"
+const CACHE_NAME = "sibatt-v5"
 const STATIC_ASSETS = [
   "/",
   "/sql-wasm.wasm",

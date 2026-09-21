@@ -8,5 +8,5 @@ os.environ.setdefault("DATABASE_URL", "sqlite://")  # in-memory for tests
 os.environ.setdefault("API_KEY", "test-api-key")
 # Redirect /export away from the real frontend/public/timetable.db.
 os.environ["EXPORT_PATH"] = str(
-    Path(tempfile.mkdtemp(prefix="slotfinder-test-export-")) / "timetable.db"
+    Path(tempfile.mkdtemp(prefix="sibatt-test-export-")) / "timetable.db"
 )

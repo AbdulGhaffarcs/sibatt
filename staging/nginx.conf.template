@@ -4,7 +4,7 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
-    auth_basic "SlotFinder staging";
+    auth_basic "Sibatt staging";
     auth_basic_user_file /etc/nginx/.htpasswd;
     add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
 

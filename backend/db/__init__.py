@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from sqlalchemy.engine import Engine
     from sqlalchemy.orm import sessionmaker
 
-_SQLITE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "slotfinder.db")
+_SQLITE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "sibatt.db")
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     f"sqlite:///{os.path.abspath(_SQLITE_PATH)}",
