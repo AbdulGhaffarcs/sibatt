@@ -188,6 +188,16 @@ class TestPageHeaderParsing(unittest.TestCase):
             ("BS (CS, AI)", ["B"]),
         )
 
+    def test_math_specialization_title_keeps_math_as_department(self):
+        self.assertEqual(
+            _parse_timetable_title("BS-III(Maths)"),
+            ("BS (Maths)", ["General"]),
+        )
+        self.assertEqual(
+            _parse_timetable_title("BS-V(Maths)"),
+            ("BS (Maths)", ["General"]),
+        )
+
 
 class TestFall2025RegressionFixture(unittest.TestCase):
     """Regression coverage for the first-column loss reported by users."""

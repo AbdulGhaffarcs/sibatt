@@ -207,6 +207,26 @@ def _parse_page_header(page: fitz.Page) -> tuple[str, list[str]]:
     return "", []
 
 
+def _looks_like_section_group(value: str) -> bool:
+    """True when a parenthesized value is section letters like A,B,C or CS,AI."""
+    cleaned = value.strip()
+    if not cleaned:
+        return False
+
+    if any(ch in cleaned for ch in (",", "&", "/")):
+        return True
+
+    tokens = [t for t in re.split(r"[\s,/&]+", cleaned) if t]
+    if not tokens:
+        return False
+
+    if len(tokens) == 1:
+        token = tokens[0]
+        return bool(re.fullmatch(r"[A-Z](?:[A-Z0-9])?", token))
+
+    return all(re.fullmatch(r"[A-Z](?:[A-Z0-9])?", t) for t in tokens)
+
+
 def _split_section_codes(value: str) -> list[str]:
     """Split timetable section labels without treating a department as a section."""
     return [
@@ -232,7 +252,11 @@ def _parse_timetable_title(title: str) -> tuple[str, list[str]] | None:
 
     spaced_section = re.match(r"^([A-Za-z. ]+?)\s*-\s*([IVXLC]+)\s*\(([^)]+)\)$", title)
     if spaced_section:
-        return spaced_section.group(1).replace(".", "").strip(), _split_section_codes(spaced_section.group(3))
+        program = spaced_section.group(1).replace(".", "").strip()
+        group_value = spaced_section.group(3).strip()
+        if _looks_like_section_group(group_value):
+            return program, _split_section_codes(group_value)
+        return f"{program} ({group_value})", ["General"]
 
     # Titles where the department is before the semester, e.g. ``BE(CSE)-I``
     # and ``MS (CS,SE)-III``.  These pages describe one cohort, so use a
@@ -245,6 +269,12 @@ def _parse_timetable_title(title: str) -> tuple[str, list[str]] | None:
         program = specialised.group(1).replace(".", "").strip()
         speciality = re.sub(r"\s*,\s*", ", ", specialised.group(2).strip())
         return f"{program} ({speciality})", ["General"]
+
+    single_specialization = re.match(r"^([A-Za-z. ]+?)\s*-\s*([IVXLC]+)\(([^)]+)\)$", title)
+    if single_specialization:
+        program = single_specialization.group(1).replace(".", "").strip()
+        specialization = single_specialization.group(3).strip()
+        return f"{program} ({specialization})", ["General"]
 
     # ``BS-Media-I`` and ``ME-EE-II`` encode the department between program
     # and semester.
