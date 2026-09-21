@@ -28,13 +28,13 @@ export interface SectionFilterSelection {
 export const DEPARTMENT_ORDER = [
   "CS",
   "CSE",
+  "Electrical Engineering",
   "BBA",
   "A&F",
   "Economics",
   "Mathematics",
   "Media",
   "PE&SS",
-  "BE",
   "B.Ed",
   "MBA",
   "ME",
@@ -59,7 +59,10 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   "BS (CS)": "CS",
   "BS (AI)": "CS",
   "BS (CS-AI)": "CS",
+  "BS (CS, AI)": "CS",
+  "BS (CS, CS-AI)": "CS",
   "BS (SE)": "CS",
+  "BS (CS, SE)": "CS",
 
   // ── Other undergraduate programs ──────────────────────────────────────────
   "BS (A&F)": "A&F",
@@ -70,13 +73,16 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
 
   // ── Business ──────────────────────────────────────────────────────────────
   BBA: "BBA",
+  "BBA (Agribusiness)": "BBA",
   MBA: "MBA",
 
   // ── Engineering ──────────────────────────────────────────────────────────
-  BE: "BE",
-  "BE (CS)": "BE",
+  BE: "Electrical Engineering",
+  "BE (CS)": "CSE",
   "BE (CSE)": "CSE",
-  "BE (EE)": "BE",
+  "BE (EE)": "Electrical Engineering",
+  "BE (Power)": "Electrical Engineering",
+  "BE (Electronics)": "Electrical Engineering",
 
   ME: "ME",
   "ME (EC)": "ME",
@@ -84,6 +90,7 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
 
   // ── Education ─────────────────────────────────────────────────────────────
   "B Ed": "B.Ed",
+  "B eD": "B.Ed",
   BEd: "B.Ed",
 
   // ── Postgraduate ─────────────────────────────────────────────────────────
@@ -91,6 +98,7 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   "MS (AI)": "MS",
   "MS (CS)": "MS",
   "MS (Mgt)": "MS",
+  "MS (Maths)": "MS",
 
   MPhil: "MPhil",
   "MPhil (II)": "MPhil",
@@ -99,10 +107,13 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   "PhD (CS, SE)": "PhD",
   "PhD (EE)": "PhD",
   "PhD (Mgt)": "PhD",
+  "PhD (Maths)": "PhD",
+  "PhD (Education)": "PhD",
 
   // ── Special intake ───────────────────────────────────────────────────────
   "Buffer Batch": "Buffer Batch",
   ADDITIONAL: "Additional",
+  Additional: "Additional",
 }
 
 /**
@@ -111,8 +122,29 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
  * Unknown values return null rather than being silently assigned to the
  * wrong department.
  */
-export function normalizeDepartment(program: string): Department | null {
-  return PROGRAM_TO_DEPARTMENT[program.trim()] ?? null
+export function normalizeDepartment(
+  program: string,
+  _section?: string,
+): Department | null {
+  const trimmed = program.trim()
+
+  if (!trimmed) return null
+
+  const direct = PROGRAM_TO_DEPARTMENT[trimmed]
+  if (direct) return direct
+
+  const normalized = trimmed.replace(/\s+/g, " ")
+
+  if (/^BE\b/i.test(normalized)) {
+    if (/CSE|CS/i.test(normalized)) return "CSE"
+    if (/EE|Power|Electronics|Electrical/i.test(normalized)) return "Electrical Engineering"
+  }
+
+  if (/^BS\b/i.test(normalized) && /CS|AI|SE/i.test(normalized)) return "CS"
+
+  if (/^B\s*e?d\b/i.test(normalized)) return "B.Ed"
+
+  return PROGRAM_TO_DEPARTMENT[normalized] ?? null
 }
 
 function uniqueSorted<T>(

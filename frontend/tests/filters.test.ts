@@ -24,13 +24,16 @@ describe("normalizeDepartment", () => {
     expect(normalizeDepartment("PhD (CS, SE)")).toBe("PhD")
   })
 
-  it("normalizes other degree variants", () => {
+  it("normalizes other degree variants without collapsing unrelated departments", () => {
     expect(normalizeDepartment("B Ed")).toBe("B.Ed")
+    expect(normalizeDepartment("B eD")).toBe("B.Ed")
     expect(normalizeDepartment("BEd")).toBe("B.Ed")
 
-    expect(normalizeDepartment("BE (CS)")).toBe("BE")
+    expect(normalizeDepartment("BE (CS)")).toBe("CSE")
     expect(normalizeDepartment("BE (CSE)")).toBe("CSE")
-    expect(normalizeDepartment("BE (EE)")).toBe("BE")
+    expect(normalizeDepartment("BE (EE)")).toBe("Electrical Engineering")
+    expect(normalizeDepartment("BE (Power)")).toBe("Electrical Engineering")
+    expect(normalizeDepartment("BE (Electronics)")).toBe("Electrical Engineering")
 
     expect(normalizeDepartment("ME (EC)")).toBe("ME")
     expect(normalizeDepartment("ME (EE)")).toBe("ME")
@@ -38,12 +41,15 @@ describe("normalizeDepartment", () => {
     expect(normalizeDepartment("MPhil (II)")).toBe("MPhil")
   })
 
-  it("keeps distinct undergraduate departments distinct", () => {
+  it("keeps distinct departments distinct and merges only visible duplicates", () => {
     expect(normalizeDepartment("BS (A&F)")).toBe("A&F")
     expect(normalizeDepartment("BS (Economics)")).toBe("Economics")
     expect(normalizeDepartment("BS (Maths)")).toBe("Mathematics")
     expect(normalizeDepartment("BS (Media)")).toBe("Media")
     expect(normalizeDepartment("BS (PE&SS)")).toBe("PE&SS")
+    expect(normalizeDepartment("BBA (Agribusiness)")).toBe("BBA")
+    expect(normalizeDepartment("BE (CS)")).toBe("CSE")
+    expect(normalizeDepartment("BE (CSE)")).toBe("CSE")
   })
 
   it("returns null for unknown programs", () => {
