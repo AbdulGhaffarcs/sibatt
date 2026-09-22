@@ -490,8 +490,9 @@ class TestFall2026SpanningSlots(unittest.TestCase):
             sum(entry.course.startswith("Applied Physics") for entry in result.entries),
             4,
         )
-        self.assertIn("A-X", {entry.section for entry in result.entries})
-        self.assertIn("A-Y", {entry.section for entry in result.entries})
+        self.assertEqual({entry.section for entry in result.entries}, {"A"})
+        self.assertTrue(any("Group X" in entry.course for entry in result.entries))
+        self.assertTrue(any("Group Y" in entry.course for entry in result.entries))
 
     def test_borderless_electrical_cells_are_recovered(self):
         from backend.extractor.grid import extract_grid
