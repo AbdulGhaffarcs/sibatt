@@ -490,6 +490,8 @@ class TestFall2026SpanningSlots(unittest.TestCase):
             sum(entry.course.startswith("Applied Physics") for entry in result.entries),
             4,
         )
+        self.assertIn("A-X", {entry.section for entry in result.entries})
+        self.assertIn("A-Y", {entry.section for entry in result.entries})
 
 
 if __name__ == "__main__":

@@ -963,12 +963,20 @@ def classify_cells(
                 if text_section in sections_from_header
                 else sections_from_header[0]
             )
+            if marker_section in _LAB_SUBGROUP_MARKERS or text_section in _LAB_SUBGROUP_MARKERS:
+                # Electrical and computing lab pages use X/Y for split lab
+                # groups inside the batch named by the page heading. Keep the
+                # subgroup visible so A-X and A-Y are not shown as duplicate
+                # classes under the parent section A.
+                section_letter = f"{section_letter}-{marker_section or text_section}"
         else:
             # Some valid timetable pages (for example MS, Media, and Buffer
             # Batch schedules) have no per-cell section letter. Keep those
             # courses visible under one explicit section instead of inventing
             # sections from uppercase words at the beginning of course names.
             section_letter = section_override or "General"
+            if marker_section in _LAB_SUBGROUP_MARKERS or text_section in _LAB_SUBGROUP_MARKERS:
+                section_letter = f"{section_letter}-{marker_section or text_section}"
 
         # Only remove a leading token from the course when it is a confirmed
         # section label. For schedules without explicit sections, abbreviations
