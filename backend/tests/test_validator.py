@@ -468,6 +468,29 @@ class TestFall2026SpanningSlots(unittest.TestCase):
         self.assertIn(("FIN", "International Financial Management"), special)
         self.assertIn(("MKT", "Sales Management"), special)
 
+    def test_electrical_lab_subgroups_are_not_dropped(self):
+        from backend.extractor.grid import extract_grid
+        from backend.extractor.parser import parse_page
+
+        document = pymupdf.open(self.pdf)
+        try:
+            page = document[42]  # BE-I(EE)-A
+            result = classify_cells(
+                parse_page(page, extract_grid(page)),
+                page=page,
+                page_no=42,
+                term="Fall-2026",
+            )
+        finally:
+            document.close()
+
+        courses = {entry.course for entry in result.entries}
+        self.assertTrue(any(course.startswith("Applied Physics") for course in courses))
+        self.assertGreaterEqual(
+            sum(entry.course.startswith("Applied Physics") for entry in result.entries),
+            4,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

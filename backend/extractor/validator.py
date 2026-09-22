@@ -56,10 +56,8 @@ _NON_COURSE_TEXT = frozenset({
     "asc htimetables",
 })
 
-# Placeholder labels present in the exported source PDF. They are not real
-# student sections and must never appear in the section picker.
-_DUMMY_SECTIONS = frozenset({"X", "Y"})
 _SPECIAL_SECTION_MARKERS = frozenset({"FIN", "MKT", "HR"})
+_LAB_SUBGROUP_MARKERS = frozenset({"X", "Y"})
 
 
 def _normalise_program_name(program: str) -> str:
@@ -949,9 +947,6 @@ def classify_cells(
         text_section = _extract_section_letter(text)
         section_letter = marker_section or text_section
 
-        if section_letter in _DUMMY_SECTIONS:
-            continue
-
         if sections_from_header:
             # A course title can begin with an uppercase abbreviation (such
             # as HR or OB), which the loose cell parser can mistake for a
@@ -981,6 +976,8 @@ def classify_cells(
         content_text = (
             re.sub(r"^\s*(?:FIN|MKT|HR)\s+", "", text, flags=re.IGNORECASE)
             if marker_section in _SPECIAL_SECTION_MARKERS
+            else re.sub(r"^\s*[XY]\s+", "", text)
+            if marker_section in _LAB_SUBGROUP_MARKERS or _extract_section_letter(text) in _LAB_SUBGROUP_MARKERS
             else
             _strip_section_letter(text)
             if sections_from_header and _extract_section_letter(text) in sections_from_header
