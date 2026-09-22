@@ -1,20 +1,15 @@
 // frontend/app/page.tsx
-// Root page — loads the SQLite bundle once and manages application view state.
+// Root page — SIBATT is a timetable-only application.
 
 "use client"
 
 import { useEffect, useState } from "react"
-import { loadDB, getAllEntries, getAllRooms } from "@/lib/db"
-import { buildCourseIndex } from "@/lib/search"
+import { loadDB, getAllEntries } from "@/lib/db"
 import DayView from "@/components/timetable/DayView"
-import CourseSearch from "@/components/search/CourseSearch"
-import RoomSearch from "@/components/search/RoomSearch"
 import SectionPicker from "@/components/timetable/SectionPicker"
-import BottomNav from "@/components/ui/BottomNav"
 import CreatorsFooter from "@/components/ui/CreatorsFooter"
 import FeedbackButton from "@/components/ui/FeedbackButton"
 import type { ClassEntry } from "@/components/timetable/ClassCard"
-import type { Course } from "@/components/search/CourseSearch"
 import {
   normalizeDepartment,
   type Section,
@@ -22,42 +17,35 @@ import {
 import {
   readSessionState,
   writeSessionState,
-  type SessionView,
 } from "@/lib/session"
 import type { Day } from "@/components/timetable/DaySelector"
-
-type View = SessionView
 
 export type { Section } from "@/lib/filters"
 
 export default function Home() {
   const saved = readSessionState()
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const [entries, setEntries] = useState<ClassEntry[]>([])
-  const [courses, setCourses] = useState<Course[]>([])
-  const [rooms, setRooms] = useState<string[]>([])
-
-  const [view, setView] = useState<View>(saved.view ?? "timetable")
-  const [section, setSection] = useState<Section | null>(saved.section ?? null)
-  const [timetableDay, setTimetableDay] = useState<Day | null>(saved.timetableDay ?? null)
-  const [courseName, setCourseName] = useState<string | null>(saved.courseName ?? null)
-  const [courseDay, setCourseDay] = useState(saved.courseDay ?? 0)
-  const [roomName, setRoomName] = useState<string | null>(saved.roomName ?? null)
-  const [roomDay, setRoomDay] = useState(saved.roomDay ?? 0)
+  const [section, setSection] = useState<Section | null>(
+    saved.section ?? null,
+  )
+  const [timetableDay, setTimetableDay] = useState<Day | null>(
+    saved.timetableDay ?? null,
+  )
 
   useEffect(() => {
     writeSessionState({
-      view,
+      view: "timetable",
       section,
       timetableDay,
-      courseName,
-      courseDay,
-      roomName,
-      roomDay,
+      courseName: null,
+      courseDay: 0,
+      roomName: null,
+      roomDay: 0,
     })
-  }, [view, section, timetableDay, courseName, courseDay, roomName, roomDay])
+  }, [section, timetableDay])
 
   useEffect(() => {
     async function init() {
@@ -65,10 +53,7 @@ export default function Home() {
         await loadDB("/timetable.db")
 
         const rawEntries = getAllEntries()
-
         setEntries(rawEntries)
-        setCourses(buildCourseIndex(rawEntries))
-        setRooms(getAllRooms())
       } catch (e) {
         setError("Could not load timetable data. Try refreshing.")
         console.error(e)
@@ -80,21 +65,6 @@ export default function Home() {
     init()
   }, [])
 
-  /*
-   * A canonical department can represent multiple raw program values.
-   *
-   * Example:
-   *
-   * BS
-   * BS (CS)
-   * BS (AI)
-   * BS (CS-AI)
-   * BS (SE)
-   *
-   * all resolve to:
-   *
-   * CS
-   */
   const sectionEntries: ClassEntry[] = section
     ? entries.filter(
         (entry) =>
@@ -106,82 +76,73 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-900 border-t-transparent" />
-
+      <main className="flex min-h-screen flex-col bg-zinc-50 px-4">
+        <div className="flex flex-1 items-center justify-center">
           <span className="text-sm text-zinc-500">
             Loading timetable…
           </span>
         </div>
+
+        <div className="pb-6 pt-10">
+          <CreatorsFooter />
+        </div>
+
+        <FeedbackButton />
       </main>
     )
   }
 
   if (error) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-6">
-        <div className="max-w-sm rounded-xl border border-red-200 bg-red-50 p-6 text-center">
-          <p className="text-sm font-medium text-red-700">
-            {error}
-          </p>
+      <main className="flex min-h-screen flex-col bg-zinc-50 px-4">
+        <div className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <p className="text-sm text-red-600">{error}</p>
 
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white"
-          >
-            Retry
-          </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
         </div>
+
+        <div className="pb-6 pt-10">
+          <CreatorsFooter />
+        </div>
+
+        <FeedbackButton />
       </main>
     )
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-3 pt-4 pb-28 sm:px-6 sm:pt-6">
-      {view === "timetable" &&
-        (section ? (
-          <DayView
-            section={section}
-            entries={sectionEntries}
-            onChangeSection={() => setSection(null)}
-            activeDay={timetableDay ?? undefined}
-            onChangeDay={setTimetableDay}
-          />
-        ) : (
-          <SectionPicker
-            entries={entries}
-            onSelect={setSection}
-          />
-        ))}
+    <main className="flex min-h-screen flex-col bg-zinc-50 px-4">
+      <div className="flex w-full flex-1 flex-col items-center pt-8 sm:px-2 sm:pt-10">
+        <div className="flex w-full max-w-3xl flex-col items-center gap-6">
+          {section ? (
+            <DayView
+              section={section}
+              entries={sectionEntries}
+              onChangeSection={() => setSection(null)}
+              activeDay={timetableDay ?? undefined}
+              onChangeDay={setTimetableDay}
+            />
+          ) : (
+            <SectionPicker
+              entries={entries}
+              onSelect={setSection}
+            />
+          )}
+        </div>
+      </div>
 
-      {view === "courses" && (
-        <CourseSearch
-          courses={courses}
-          selectedCourseName={courseName}
-          onSelectCourse={setCourseName}
-          dayIdx={courseDay}
-          onChangeDay={setCourseDay}
-        />
-      )}
+      <div className="w-full pb-20 pt-12 sm:pb-8">
+        <CreatorsFooter />
+      </div>
 
-      {view === "rooms" && (
-        <RoomSearch
-          entries={entries}
-          rooms={rooms}
-          selectedRoomName={roomName}
-          onSelectRoom={setRoomName}
-          dayIdx={roomDay}
-          onChangeDay={setRoomDay}
-        />
-      )}
-
-      <BottomNav
-        active={view}
-        onChange={setView}
-      />
-
-      <CreatorsFooter />
       <FeedbackButton />
     </main>
   )
