@@ -1,25 +1,43 @@
+// frontend/components/ui/FeedbackButton.tsx
+// Floating feedback button for SIBATT.
+
 "use client"
 
 import { FormEvent, useState } from "react"
 import emailjs from "@emailjs/browser"
 
-const EMAILJS_SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
-const EMAILJS_TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
-const EMAILJS_PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+const EMAILJS_SERVICE_ID =
+  process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+
+const EMAILJS_TEMPLATE_ID =
+  process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
+
+const EMAILJS_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
 
 export default function FeedbackButton() {
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle")
+  const [status, setStatus] = useState<
+    "idle" | "sending" | "success" | "error"
+  >("idle")
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent) {
     event.preventDefault()
-    if (!message.trim()) return
+
+    if (!message.trim()) {
+      return
+    }
 
     setStatus("sending")
+
     try {
-      if (!EMAILJS_SERVICE_ID || !EMAILJS_TEMPLATE_ID || !EMAILJS_PUBLIC_KEY) {
+      if (
+        !EMAILJS_SERVICE_ID ||
+        !EMAILJS_TEMPLATE_ID ||
+        !EMAILJS_PUBLIC_KEY
+      ) {
         throw new Error("EmailJS is not configured")
       }
 
@@ -33,6 +51,7 @@ export default function FeedbackButton() {
         },
         EMAILJS_PUBLIC_KEY,
       )
+
       setMessage("")
       setEmail("")
       setStatus("success")
@@ -50,7 +69,7 @@ export default function FeedbackButton() {
           setOpen(true)
           setStatus("idle")
         }}
-        className="fixed bottom-[5.2rem] right-4 z-50 rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2"
+        className="fixed bottom-4 right-4 z-50 rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 sm:bottom-5 sm:right-5"
       >
         Feedback
       </button>
@@ -65,13 +84,18 @@ export default function FeedbackButton() {
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 id="feedback-title" className="text-base font-semibold text-zinc-900">
+                <h2
+                  id="feedback-title"
+                  className="text-base font-semibold text-zinc-900"
+                >
                   Share feedback
                 </h2>
+
                 <p className="mt-1 text-sm text-zinc-500">
                   Tell us what would make SIBATT better.
                 </p>
               </div>
+
               <button
                 type="button"
                 aria-label="Close feedback"
@@ -82,33 +106,54 @@ export default function FeedbackButton() {
               </button>
             </div>
 
-            <form onSubmit={submit} className="mt-4 space-y-3">
+            <form
+              onSubmit={submit}
+              className="mt-4 space-y-3"
+            >
               <textarea
                 required
                 autoFocus
                 maxLength={2000}
                 value={message}
-                onChange={(event) => setMessage(event.target.value)}
+                onChange={(event) =>
+                  setMessage(event.target.value)
+                }
                 placeholder="What should we improve?"
                 className="min-h-28 w-full resize-y rounded-xl border border-zinc-300 p-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-zinc-900"
               />
+
               <input
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) =>
+                  setEmail(event.target.value)
+                }
                 placeholder="Email for a reply (optional)"
                 className="h-10 w-full rounded-xl border border-zinc-300 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-zinc-900"
               />
 
-              {status === "success" && <p className="text-sm text-emerald-600">Thanks, your feedback was received.</p>}
-              {status === "error" && <p className="text-sm text-red-600">Could not send feedback. Please try again.</p>}
+              {status === "success" && (
+                <p className="text-sm text-emerald-600">
+                  Thanks, your feedback was received.
+                </p>
+              )}
+
+              {status === "error" && (
+                <p className="text-sm text-red-600">
+                  Could not send feedback. Please try again.
+                </p>
+              )}
 
               <button
                 type="submit"
-                disabled={status === "sending" || !message.trim()}
+                disabled={
+                  status === "sending" || !message.trim()
+                }
                 className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
               >
-                {status === "sending" ? "Sending..." : "Send feedback"}
+                {status === "sending"
+                  ? "Sending..."
+                  : "Send feedback"}
               </button>
             </form>
           </div>
