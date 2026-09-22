@@ -963,6 +963,14 @@ def classify_cells(
                 if text_section in sections_from_header
                 else sections_from_header[0]
             )
+            if section_letter == sections_from_header[0] and len(sections_from_header) > 1:
+                # When a source cell has no usable marker, its vertical
+                # position within the day's divided row identifies the
+                # section (top C / bottom D, etc.).
+                day_top, day_bottom = day_rows.get(assigned_day, (cy, cy + 1))
+                relative = max(0.0, min(0.999999, (cy - day_top) / max(day_bottom - day_top, 1.0)))
+                section_index = min(len(sections_from_header) - 1, int(relative * len(sections_from_header)))
+                section_letter = sections_from_header[section_index]
         else:
             # Some valid timetable pages (for example MS, Media, and Buffer
             # Batch schedules) have no per-cell section letter. Keep those
@@ -1003,9 +1011,6 @@ def classify_cells(
         ):
             continue
 
-        subgroup = marker_section if marker_section in _LAB_SUBGROUP_MARKERS else text_section if text_section in _LAB_SUBGROUP_MARKERS else ""
-        if subgroup and parsed["course"]:
-            parsed["course"] = f"{parsed['course']} (Group {subgroup})"
 
         # Keep the class visible, but make incomplete source cells reviewable
         # through the admin flagged-cells endpoint instead of inventing a room.
