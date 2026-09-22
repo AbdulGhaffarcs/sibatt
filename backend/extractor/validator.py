@@ -59,6 +59,14 @@ _NON_COURSE_TEXT = frozenset({
 # Placeholder labels present in the exported source PDF. They are not real
 # student sections and must never appear in the section picker.
 _DUMMY_SECTIONS = frozenset({"X", "Y"})
+_SPECIAL_SECTION_MARKERS = frozenset({"FIN", "MKT", "HR"})
+
+
+def _normalise_program_name(program: str) -> str:
+    """Return one stable display name for equivalent program labels."""
+    # The source uses both ``B. Ed`` and ``BEd`` across its pages.  Without
+    # normalization, one department is split across two filter options.
+    return re.sub(r"\bB\s*\.?\s*Ed\b", "BEd", program, flags=re.IGNORECASE).strip()
 
 
 @dataclass
@@ -868,7 +876,7 @@ def classify_cells(
 
     if page is not None:
         detected_program, sections_from_header = _parse_page_header(page)
-        program = detected_program or program_override
+        program = _normalise_program_name(detected_program or program_override)
         semester = _extract_semester_from_page(page) or semester_override
         slot_cols = _detect_slot_columns(page)
         day_rows = _detect_day_rows(page)
@@ -954,6 +962,8 @@ def classify_cells(
             section_letter = (
                 section_letter
                 if section_letter in sections_from_header
+                else marker_section
+                if marker_section in _SPECIAL_SECTION_MARKERS
                 else text_section
                 if text_section in sections_from_header
                 else sections_from_header[0]
@@ -969,6 +979,9 @@ def classify_cells(
         # section label. For schedules without explicit sections, abbreviations
         # such as HR belong to the course title.
         content_text = (
+            re.sub(r"^\s*(?:FIN|MKT|HR)\s+", "", text, flags=re.IGNORECASE)
+            if marker_section in _SPECIAL_SECTION_MARKERS
+            else
             _strip_section_letter(text)
             if sections_from_header and _extract_section_letter(text) in sections_from_header
             else text

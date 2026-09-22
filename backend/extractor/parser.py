@@ -92,21 +92,30 @@ def _collapse_words(words: list[tuple]) -> str:
 
 
 def _section_marker(cell: dict, words: list[tuple]) -> str:
-    """Read the one-letter section marker printed at a cell's upper-right."""
-    candidates: list[tuple[float, str]] = []
+    """Read the one-letter section marker printed at a cell's upper-right.
+
+    Adjacent timetable cells share a border.  Their markers sit just above
+    their respective content, so accepting a marker above ``cell['y0']`` can
+    incorrectly assign the previous cell's section to this one.  Prefer a
+    marker inside the current cell; only use the legacy above-border area when
+    no in-cell marker exists.
+    """
+    in_cell: list[tuple[float, str]] = []
+    above_cell: list[tuple[float, str]] = []
     for word in words:
         text = str(word[4]).strip()
         x_mid, y_mid = _word_center(word)
         if (
-            len(text) == 1
+            1 <= len(text) <= 4
             and text.isalpha()
             and text.isupper()
             and x_mid >= float(cell["x1"]) - 14
             and y_mid >= float(cell["y0"]) - 8
             and y_mid <= float(cell["y0"]) + 12
         ):
-            candidates.append((y_mid, text))
-    return min(candidates, default=(0.0, ""))[1]
+            target = in_cell if y_mid >= float(cell["y0"]) - CONTAINMENT_TOLERANCE else above_cell
+            target.append((y_mid, text))
+    return min(in_cell or above_cell, default=(0.0, ""))[1]
 
 
 def _merge_suffix_fragments(words: list[tuple]) -> list[tuple]:

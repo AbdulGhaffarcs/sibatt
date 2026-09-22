@@ -21,6 +21,7 @@ from backend.extractor.validator import (
     _fix_word_splits,
     _parse_page_header,
     _parse_timetable_title,
+    _normalise_program_name,
     _strip_embedded_section,
     classify_cells,
     parse_cell_text,
@@ -104,6 +105,13 @@ class TestExtractSectionLetter(unittest.TestCase):
 
     def test_two_letter_not_section(self):
         self.assertEqual(_extract_section_letter("The Course"), "")
+
+
+class TestProgramNameNormalization(unittest.TestCase):
+    def test_b_ed_variants_share_one_name(self):
+        self.assertEqual(_normalise_program_name("B. Ed"), "BEd")
+        self.assertEqual(_normalise_program_name("B Ed"), "BEd")
+        self.assertEqual(_normalise_program_name("BEd"), "BEd")
 
 
 class TestStripEmbeddedSection(unittest.TestCase):
@@ -423,11 +431,42 @@ class TestFall2026SpanningSlots(unittest.TestCase):
                 ("Monday", 1), ("Monday", 2), ("Monday", 3),
                 ("Monday", 5), ("Monday", 6), ("Monday", 7),
                 ("Tuesday", 1), ("Tuesday", 2), ("Tuesday", 3),
-                ("Wednesday", 1), ("Wednesday", 2),
+                ("Wednesday", 1), ("Wednesday", 2), ("Wednesday", 3),
                 ("Thursday", 1), ("Thursday", 2), ("Thursday", 3),
                 ("Friday", 1), ("Friday", 2), ("Friday", 3),
             },
         )
+
+    def test_bba_vii_specialization_markers_are_sections(self):
+        from backend.extractor.grid import extract_grid
+        from backend.extractor.parser import parse_page
+
+        document = pymupdf.open(self.pdf)
+        try:
+            page = document[5]
+            result = classify_cells(
+                parse_page(page, extract_grid(page)),
+                page=page,
+                page_no=5,
+                term="Fall-2026",
+            )
+        finally:
+            document.close()
+
+        special = {
+            (entry.section, entry.course)
+            for entry in result.entries
+            if entry.course in {
+                "Security Analysis",
+                "Training Techniques & Practices",
+                "International Financial Management",
+                "Sales Management",
+            }
+        }
+        self.assertIn(("FIN", "Security Analysis"), special)
+        self.assertIn(("HR", "Training Techniques & Practices"), special)
+        self.assertIn(("FIN", "International Financial Management"), special)
+        self.assertIn(("MKT", "Sales Management"), special)
 
 
 if __name__ == "__main__":
