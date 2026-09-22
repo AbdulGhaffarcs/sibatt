@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import os
 import tempfile
+from unittest.mock import patch
 import unittest
 from pathlib import Path
 
@@ -28,6 +29,24 @@ class TestHealthEndpoint(unittest.TestCase):
         resp = client.get("/health")
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json(), {"status": "ok"})
+
+
+class TestFeedbackEndpoints(unittest.TestCase):
+    @patch("backend.api.routes._send_feedback_email")
+    def test_feedback_can_be_submitted_without_admin_auth(self, send_email):
+        resp = client.post("/feedback", json={"message": "The room search is useful", "email": "user@example.com"})
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(resp.json(), {"status": "received"})
+        send_email.assert_called_once()
+
+    def test_feedback_requires_a_message(self):
+        resp = client.post("/feedback", json={"message": "   "})
+        self.assertEqual(resp.status_code, 422)
+
+    def test_feedback_returns_service_unavailable_when_email_is_not_configured(self):
+        with patch("backend.api.routes._send_feedback_email", side_effect=RuntimeError("not configured")):
+            resp = client.post("/feedback", json={"message": "The room search is useful"})
+        self.assertEqual(resp.status_code, 503)
 
 
 class TestIngestEndpoint(unittest.TestCase):

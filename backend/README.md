@@ -22,6 +22,24 @@ uvicorn backend.api.main:app --reload --host 127.0.0.1 --port 8000
 
 The API runs at <http://127.0.0.1:8000>. Open <http://127.0.0.1:8000/docs> for the API documentation.
 
+## Configure feedback email
+
+Feedback is sent by email and is not stored in the database. Set these variables
+on the backend deployment:
+
+```bash
+export FEEDBACK_RECIPIENT_EMAIL=your@email.com
+export SMTP_HOST=smtp.example.com
+export SMTP_PORT=587
+export SMTP_USER=your-smtp-user
+export SMTP_PASSWORD=your-smtp-password
+export SMTP_FROM=slotfinder@example.com
+export SMTP_USE_TLS=true
+```
+
+The frontend build must also set `NEXT_PUBLIC_FEEDBACK_API_URL` to the public
+URL of this backend, for example `https://api.example.com`.
+
 ## Check the backend
 
 In another terminal:

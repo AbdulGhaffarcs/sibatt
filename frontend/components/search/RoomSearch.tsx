@@ -13,15 +13,40 @@ import { deduplicateEntries, searchScore } from "@/lib/search"
 interface RoomSearchProps {
   entries: ClassEntry[]
   rooms:   string[]
+  selectedRoomName?: string | null
+  onSelectRoom?: (name: string | null) => void
+  dayIdx?: number
+  onChangeDay?: (idx: number) => void
 }
 
-export default function RoomSearch({ entries, rooms }: RoomSearchProps) {
+export default function RoomSearch({
+  entries,
+  rooms,
+  selectedRoomName,
+  onSelectRoom,
+  dayIdx: controlledDayIdx,
+  onChangeDay,
+}: RoomSearchProps) {
   const [query,    setQuery]    = useState("")
-  const [selected, setSelected] = useState<string | null>(null)
-  const [dayIdx,   setDayIdx]   = useState(() => {
+  const [localSelected, setLocalSelected] = useState<string | null>(null)
+  const [localDayIdx, setLocalDayIdx] = useState(() => {
     const d = new Date().getDay() - 1
     return d >= 0 && d <= 4 ? d : 0
   })
+  const selected = selectedRoomName === undefined
+    ? localSelected
+    : selectedRoomName !== null && rooms.includes(selectedRoomName)
+      ? selectedRoomName
+      : null
+  const dayIdx = controlledDayIdx ?? localDayIdx
+  const setSelected = (room: string | null) => {
+    setLocalSelected(room)
+    onSelectRoom?.(room)
+  }
+  const setDayIdx = (idx: number) => {
+    setLocalDayIdx(idx)
+    onChangeDay?.(idx)
+  }
 
   const filteredRooms = useMemo(() => {
     const q = query.toLowerCase().trim()

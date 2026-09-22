@@ -14,6 +14,16 @@ npm run dev
 
 Open <http://localhost:3000>.
 
+Feedback delivery uses EmailJS. Set these public variables before building:
+
+```bash
+NEXT_PUBLIC_EMAILJS_SERVICE_ID=your_service_id
+NEXT_PUBLIC_EMAILJS_TEMPLATE_ID=your_template_id
+NEXT_PUBLIC_EMAILJS_PUBLIC_KEY=your_public_key
+```
+
+The EmailJS template receives `message`, `email`, and `user_agent` parameters.
+
 The frontend reads `public/timetable.db`. In a separate terminal, before first use or whenever a new PDF arrives, create it from the backend:
 
 ```bash

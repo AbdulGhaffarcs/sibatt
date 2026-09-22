@@ -126,3 +126,5 @@ class FlaggedCell(Base):
     fixed_data: Mapped[str]  = mapped_column(String, nullable=False, default="")
 
     term: Mapped["Term"] = relationship(back_populates="flagged_cells")
+
+

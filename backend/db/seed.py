@@ -15,7 +15,7 @@ _TIMESLOTS_JSON = Path(__file__).resolve().parents[2] / "shared" / "timeslots.js
 
 
 def seed_timeslots(db: Session) -> int:
-    """Insert timeslots from the shared JSON file.  Returns count inserted."""
+    """Insert or reconcile timeslots from shared JSON. Returns count inserted."""
     data = json.loads(_TIMESLOTS_JSON.read_text(encoding="utf-8"))
     inserted = 0
     for row in data:
@@ -27,6 +27,9 @@ def seed_timeslots(db: Session) -> int:
                 end_time=row["end"],
             ))
             inserted += 1
+        else:
+            exists.start_time = row["start"]
+            exists.end_time = row["end"]
     db.commit()
     return inserted
 

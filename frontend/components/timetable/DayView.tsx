@@ -80,16 +80,22 @@ interface DayViewProps {
   section: Section
   entries: ClassEntry[]
   onChangeSection: () => void
+  activeDay?: Day
+  onChangeDay?: (day: Day) => void
 }
 
 export default function DayView({
   section,
   entries,
   onChangeSection,
+  activeDay: controlledDay,
+  onChangeDay,
 }: DayViewProps) {
-  const [activeDay, setActiveDay] = useState<Day>(
+  const [localDay, setLocalDay] = useState<Day>(
     todayKey(),
   )
+  const activeDay = controlledDay ?? localDay
+  const setActiveDay = onChangeDay ?? setLocalDay
 
   const [now, setNow] = useState(() => new Date())
 

@@ -485,6 +485,12 @@ def parse_room(text: str) -> tuple[str, str, bool]:
     if re.search(r"\bKC\b", text, re.IGNORECASE):
         return "KC", "", False
 
+    # Chemistry/content labs use venue codes such as AB-I rather than R-###.
+    venue_pat = re.compile(r"\b([A-Z]{2,3}[-_](?:I{1,3}|IV|V))\b")
+    venue_match = venue_pat.search(text)
+    if venue_match:
+        return venue_match.group(1).upper().replace("_", "-"), "", False
+
     # Try R-XXX pattern (2-4 digits)
     room_pat = re.compile(r"(R[-_]?\d{2,4})", re.IGNORECASE)
     m = room_pat.search(text)
@@ -602,6 +608,7 @@ def parse_cell_text(text: str) -> dict[str, str]:
     # Do not mistake the "LR" in a lab room (LR-107) for an instructor.
     teacher_text = re.sub(r"\bL?R[-_]?\d{1,4}\b", "", text, flags=re.IGNORECASE)
     teacher_text = re.sub(r"\bB[-_]?(?:I{1,3}|IV|V)\b", "", teacher_text, flags=re.IGNORECASE)
+    teacher_text = re.sub(r"\b[A-Z]{2,3}[-_]?(?:I{1,3}|IV|V)\b", "", teacher_text)
     teacher_code = parse_teacher_code(teacher_text)
 
     # Strip room from the text to get clean course name

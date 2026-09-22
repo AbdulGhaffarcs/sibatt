@@ -8,6 +8,7 @@ from sqlalchemy import text
 
 from backend.db import Base, SessionLocal, _get_engine, init_db
 from backend.db.models import Course, Entry, Program, Room, Section, Teacher, Term
+from backend.db.models import Course, Entry, Program, Room, Section, Teacher, Term, Timeslot
 from backend.db.reset import reset_timetable_data
 from backend.db.seed import seed_term, seed_timeslots
 
@@ -44,3 +45,15 @@ class TestTimetableReset(unittest.TestCase):
             self.assertEqual(db.query(Term).count(), 0)
             self.assertEqual(db.query(Program).count(), 0)
             self.assertEqual(db.execute(text("SELECT COUNT(*) FROM timeslots")).scalar(), 10)
+
+    def test_seed_timeslots_repairs_existing_times(self):
+        with SessionLocal() as db:
+            seed_timeslots(db)
+            slot = db.query(Timeslot).filter_by(slot_no=7).one()
+            slot.start_time = "16:00"
+            db.commit()
+
+            seed_timeslots(db)
+
+            repaired = db.query(Timeslot).filter_by(slot_no=7).one()
+            self.assertEqual((repaired.start_time, repaired.end_time), ("16:10", "17:00"))

@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import smtplib
 import tempfile
+from email.message import EmailMessage
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Security, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Security, UploadFile
 from pydantic import BaseModel, ValidationError
 from sqlalchemy import text as sql_text
 from sqlalchemy.orm import Session
@@ -36,6 +38,48 @@ class FixFlaggedBody(BaseModel):
     fixed_data: str
 
 
+class FeedbackBody(BaseModel):
+    message: str
+    email: str = ""
+
+
+class FeedbackResponse(BaseModel):
+    status: str
+
+
+def _send_feedback_email(message: str, email: str, user_agent: str) -> None:
+    """Send feedback through the configured SMTP relay without storing it."""
+    host = os.getenv("SMTP_HOST")
+    recipient = os.getenv("FEEDBACK_RECIPIENT_EMAIL")
+    if not host or not recipient:
+        raise RuntimeError("Feedback email is not configured")
+
+    sender = os.getenv("SMTP_FROM", os.getenv("SMTP_USER", recipient))
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    subject = "SIBATT user feedback"
+
+    email_message = EmailMessage()
+    email_message["Subject"] = subject
+    email_message["From"] = sender
+    email_message["To"] = recipient
+    if email:
+        email_message["Reply-To"] = email
+    email_message.set_content(
+        f"Feedback:\n\n{message}\n\n"
+        f"Reply email: {email or 'Not provided'}\n"
+        f"User agent: {user_agent or 'Not provided'}"
+    )
+
+    with smtplib.SMTP(host, smtp_port, timeout=10) as smtp:
+        if os.getenv("SMTP_USE_TLS", "true").lower() in {"1", "true", "yes"}:
+            smtp.starttls()
+        if smtp_user and smtp_password:
+            smtp.login(smtp_user, smtp_password)
+        smtp.send_message(email_message)
+
+
 def _handle(desc: str):
     """Decorator that wraps endpoints with logging and generic error handling."""
     def decorator(func):
@@ -59,6 +103,26 @@ def health(db: Session = Depends(get_db)):
         return {"status": "ok"}
     except Exception as exc:
         raise HTTPException(status_code=503, detail=str(exc))
+
+
+@router.post("/feedback", response_model=FeedbackResponse, status_code=201)
+def submit_feedback(body: FeedbackBody, request: Request):
+    """Send public user feedback to the configured team email."""
+    message = body.message.strip()
+    email = body.email.strip()
+    if not message:
+        raise HTTPException(status_code=422, detail="message must not be empty")
+    if len(message) > 2000:
+        raise HTTPException(status_code=422, detail="message is too long")
+    if len(email) > 320:
+        raise HTTPException(status_code=422, detail="email is too long")
+
+    try:
+        _send_feedback_email(message, email, request.headers.get("user-agent", "")[:500])
+    except Exception:
+        logger.exception("Feedback email delivery failed")
+        raise HTTPException(status_code=503, detail="Feedback email is temporarily unavailable")
+    return {"status": "received"}
 
 
 @router.post("/ingest")

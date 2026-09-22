@@ -24,6 +24,13 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/sibatt
       API_KEY: dev-api-key-change-me
+      FEEDBACK_RECIPIENT_EMAIL: ${FEEDBACK_RECIPIENT_EMAIL:-your@email.com}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
     depends_on:
       db:
         condition: service_healthy

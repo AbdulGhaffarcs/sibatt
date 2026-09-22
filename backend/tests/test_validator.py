@@ -62,6 +62,12 @@ class TestParseRoom(unittest.TestCase):
         self.assertEqual(building, "")
         self.assertFalse(online)
 
+    def test_named_lab_venue(self):
+        self.assertEqual(parse_room("Chem- Lab, AB-I"), ("AB-I", "", False))
+
+    def test_course_roman_numeral_is_not_room(self):
+        self.assertEqual(parse_room("Chemistry - III"), ("", "", False))
+
 
 class TestParseTeacherCode(unittest.TestCase):
     def test_multi_letter_code(self):

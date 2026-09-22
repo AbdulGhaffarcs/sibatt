@@ -20,6 +20,7 @@ describe("normalizeDepartment", () => {
     expect(normalizeDepartment("MS")).toBe("MS")
     expect(normalizeDepartment("MS (CS)")).toBe("MS")
     expect(normalizeDepartment("MS (AI)")).toBe("MS")
+    expect(normalizeDepartment("MS (Maths)")).toBe("MS Mathematics")
     expect(normalizeDepartment("PhD")).toBe("PhD")
     expect(normalizeDepartment("PhD (CS, SE)")).toBe("PhD")
   })
@@ -215,6 +216,30 @@ describe("getSectionFilterOptions", () => {
       "BBA",
       "Economics",
     ])
+  })
+
+  it("keeps MS Mathematics separate in the primary menu", () => {
+    const result = getSectionFilterOptions(
+      [
+        {
+          id: 1,
+          program: "MS",
+          semester: 1,
+          section: "A",
+          course: "Computer Science",
+        },
+        {
+          id: 2,
+          program: "MS (Maths)",
+          semester: 1,
+          section: "A",
+          course: "Mathematics",
+        },
+      ] as ClassEntry[],
+      { department: "", semester: null },
+    )
+
+    expect(result.departments).toEqual(["MS", "MS Mathematics"])
   })
 
   it("includes semester-zero additional sections", () => {

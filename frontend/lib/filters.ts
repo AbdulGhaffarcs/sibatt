@@ -39,6 +39,7 @@ export const DEPARTMENT_ORDER = [
   "MBA",
   "ME",
   "MS",
+  "MS Mathematics",
   "MPhil",
   "PhD",
   "Buffer Batch",
@@ -98,7 +99,7 @@ const PROGRAM_TO_DEPARTMENT: Record<string, Department> = {
   "MS (AI)": "MS",
   "MS (CS)": "MS",
   "MS (Mgt)": "MS",
-  "MS (Maths)": "MS",
+  "MS (Maths)": "MS Mathematics",
 
   MPhil: "MPhil",
   "MPhil (II)": "MPhil",

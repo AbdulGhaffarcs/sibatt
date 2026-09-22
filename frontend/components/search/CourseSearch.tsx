@@ -14,15 +14,37 @@ export interface Course {
 
 interface CourseSearchProps {
   courses: Course[]
+  selectedCourseName?: string | null
+  onSelectCourse?: (name: string | null) => void
+  dayIdx?: number
+  onChangeDay?: (idx: number) => void
 }
 
-export default function CourseSearch({ courses }: CourseSearchProps) {
+export default function CourseSearch({
+  courses,
+  selectedCourseName,
+  onSelectCourse,
+  dayIdx: controlledDayIdx,
+  onChangeDay,
+}: CourseSearchProps) {
   const [query,    setQuery]    = useState("")
-  const [selected, setSelected] = useState<Course | null>(null)
-  const [dayIdx,   setDayIdx]   = useState(() => {
+  const [localSelected, setLocalSelected] = useState<Course | null>(null)
+  const [localDayIdx, setLocalDayIdx] = useState(() => {
     const d = new Date().getDay() - 1
     return d >= 0 && d <= 4 ? d : 0
   })
+  const selected = selectedCourseName === undefined
+    ? localSelected
+    : courses.find((course) => course.name === selectedCourseName) ?? null
+  const dayIdx = controlledDayIdx ?? localDayIdx
+  const setSelected = (course: Course | null) => {
+    setLocalSelected(course)
+    onSelectCourse?.(course?.name ?? null)
+  }
+  const setDayIdx = (idx: number) => {
+    setLocalDayIdx(idx)
+    onChangeDay?.(idx)
+  }
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim()

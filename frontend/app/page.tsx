@@ -12,18 +12,26 @@ import RoomSearch from "@/components/search/RoomSearch"
 import SectionPicker from "@/components/timetable/SectionPicker"
 import BottomNav from "@/components/ui/BottomNav"
 import CreatorsFooter from "@/components/ui/CreatorsFooter"
+import FeedbackButton from "@/components/ui/FeedbackButton"
 import type { ClassEntry } from "@/components/timetable/ClassCard"
 import type { Course } from "@/components/search/CourseSearch"
 import {
   normalizeDepartment,
   type Section,
 } from "@/lib/filters"
+import {
+  readSessionState,
+  writeSessionState,
+  type SessionView,
+} from "@/lib/session"
+import type { Day } from "@/components/timetable/DaySelector"
 
-type View = "timetable" | "courses" | "rooms"
+type View = SessionView
 
 export type { Section } from "@/lib/filters"
 
 export default function Home() {
+  const saved = readSessionState()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,8 +39,25 @@ export default function Home() {
   const [courses, setCourses] = useState<Course[]>([])
   const [rooms, setRooms] = useState<string[]>([])
 
-  const [view, setView] = useState<View>("timetable")
-  const [section, setSection] = useState<Section | null>(null)
+  const [view, setView] = useState<View>(saved.view ?? "timetable")
+  const [section, setSection] = useState<Section | null>(saved.section ?? null)
+  const [timetableDay, setTimetableDay] = useState<Day | null>(saved.timetableDay ?? null)
+  const [courseName, setCourseName] = useState<string | null>(saved.courseName ?? null)
+  const [courseDay, setCourseDay] = useState(saved.courseDay ?? 0)
+  const [roomName, setRoomName] = useState<string | null>(saved.roomName ?? null)
+  const [roomDay, setRoomDay] = useState(saved.roomDay ?? 0)
+
+  useEffect(() => {
+    writeSessionState({
+      view,
+      section,
+      timetableDay,
+      courseName,
+      courseDay,
+      roomName,
+      roomDay,
+    })
+  }, [view, section, timetableDay, courseName, courseDay, roomName, roomDay])
 
   useEffect(() => {
     async function init() {
@@ -120,6 +145,8 @@ export default function Home() {
             section={section}
             entries={sectionEntries}
             onChangeSection={() => setSection(null)}
+            activeDay={timetableDay ?? undefined}
+            onChangeDay={setTimetableDay}
           />
         ) : (
           <SectionPicker
@@ -129,13 +156,23 @@ export default function Home() {
         ))}
 
       {view === "courses" && (
-        <CourseSearch courses={courses} />
+        <CourseSearch
+          courses={courses}
+          selectedCourseName={courseName}
+          onSelectCourse={setCourseName}
+          dayIdx={courseDay}
+          onChangeDay={setCourseDay}
+        />
       )}
 
       {view === "rooms" && (
         <RoomSearch
           entries={entries}
           rooms={rooms}
+          selectedRoomName={roomName}
+          onSelectRoom={setRoomName}
+          dayIdx={roomDay}
+          onChangeDay={setRoomDay}
         />
       )}
 
@@ -145,6 +182,7 @@ export default function Home() {
       />
 
       <CreatorsFooter />
+      <FeedbackButton />
     </main>
   )
 }
