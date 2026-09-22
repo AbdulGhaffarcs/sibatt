@@ -1004,7 +1004,11 @@ def classify_cells(
         parsed = parse_cell_text(content_text)
         # Never create a display entry from page furniture or a cell whose
         # content could not be interpreted as a course.
-        if not parsed["course"] or parsed["course"].lower() in _NON_COURSE_TEXT:
+        if (
+            not parsed["course"]
+            or parsed["course"].lower() in _NON_COURSE_TEXT
+            or not any(char.isalnum() for char in parsed["course"])
+        ):
             continue
 
         # Keep the class visible, but make incomplete source cells reviewable

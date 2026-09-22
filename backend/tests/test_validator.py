@@ -493,6 +493,26 @@ class TestFall2026SpanningSlots(unittest.TestCase):
         self.assertIn("A-X", {entry.section for entry in result.entries})
         self.assertIn("A-Y", {entry.section for entry in result.entries})
 
+    def test_borderless_electrical_cells_are_recovered(self):
+        from backend.extractor.grid import extract_grid
+        from backend.extractor.parser import parse_page
+
+        document = pymupdf.open(self.pdf)
+        try:
+            page = document[42]  # BE-I(EE)-A
+            result = classify_cells(
+                parse_page(page, extract_grid(page)),
+                page=page,
+                page_no=42,
+                term="Fall-2026",
+            )
+        finally:
+            document.close()
+
+        courses = {entry.course for entry in result.entries}
+        self.assertTrue(any(course.startswith("Calculus and Analytic") for course in courses))
+        self.assertIn("Workshop Practice", courses)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -169,12 +169,14 @@ def parse_page(page: fitz.Page, cells: list[dict]) -> list[dict]:
     """Assign page words to cells by word-center containment and return raw cell text."""
     words = page.get_text("words")
     words_by_cell: list[list[tuple]] = [[] for _ in cells]
+    assigned_words: set[int] = set()
 
-    for word in words:
+    for word_index, word in enumerate(words):
         x_mid, y_mid = _word_center(word)
         for index, cell in enumerate(cells):
             if _contains(cell, x_mid, y_mid):
                 words_by_cell[index].append(word)
+                assigned_words.add(word_index)
                 break
 
     records: list[dict] = []
@@ -188,6 +190,61 @@ def parse_page(page: fitz.Page, cells: list[dict]) -> list[dict]:
                 # border in some PDF rows, so inspect all page words rather
                 # than only words assigned by center containment.
                 "section_marker": _section_marker(cell, words),
+            })
+
+    # Some aSc pages omit one or more border lines around a class block. The
+    # visible course text then falls outside every reconstructed rectangle and
+    # would otherwise disappear. Recover connected orphan word groups as
+    # synthetic cells; classify_cells still applies normal day/slot parsing and
+    # furniture filtering to them.
+    orphan_words = []
+    furniture = {"break", "minutes", "lunch", "prayer", "30", "10", "-"}
+    for index, word in enumerate(words):
+        if index in assigned_words:
+            continue
+        text = str(word[4]).strip()
+        x_mid, y_mid = _word_center(word)
+        if not text or y_mid < 107 or y_mid > 581 or x_mid < 56:
+            continue
+        if text.lower() in furniture:
+            continue
+        orphan_words.append(word)
+
+    orphan_words.sort(key=lambda word: (float(word[1]), float(word[0])))
+    groups: list[list[tuple]] = []
+    for word in orphan_words:
+        x0, y0, x1, y1 = map(float, word[:4])
+        placed = False
+        for group in groups:
+            gx0 = min(float(item[0]) for item in group)
+            gy0 = min(float(item[1]) for item in group)
+            gx1 = max(float(item[2]) for item in group)
+            gy1 = max(float(item[3]) for item in group)
+            horizontal_gap = max(gx0 - x1, x0 - gx1, 0)
+            vertical_gap = max(gy0 - y1, y0 - gy1, 0)
+            if horizontal_gap <= 32 and vertical_gap <= 34:
+                group.append(word)
+                placed = True
+                break
+        if not placed:
+            groups.append([word])
+
+    for group in groups:
+        if not group:
+            continue
+        x0 = min(float(word[0]) for word in group)
+        y0 = min(float(word[1]) for word in group)
+        x1 = max(float(word[2]) for word in group)
+        y1 = max(float(word[3]) for word in group)
+        text = _collapse_words(group)
+        if text and any(char.isalnum() for char in text):
+            records.append({
+                "cell": {"x0": x0, "y0": y0, "x1": x1, "y1": y1},
+                "text": text,
+                "section_marker": _section_marker(
+                    {"x0": x0, "y0": y0, "x1": x1, "y1": y1},
+                    words,
+                ),
             })
 
     return records
