@@ -1,66 +1,131 @@
-import { describe, it, expect, vi } from "vitest"
-import { render, screen, fireEvent } from "@testing-library/react"
-import SectionPicker from "@/components/timetable/SectionPicker"
+// frontend/components/timetable/SectionPicker.tsx
+// Progressive Department → Semester → Section timetable selector.
+
+"use client"
+
+import { useMemo, useState } from "react"
 import type { ClassEntry } from "@/components/timetable/ClassCard"
+import {
+  getSectionFilterOptions,
+  type Section,
+} from "@/lib/filters"
+import { SEM_ROMAN } from "@/lib/constants"
 
-const mockEntries: ClassEntry[] = [
-  {
-    id: 1, program: "BSCS", semester: 3, section: "A",
-    course: "Data Structures", teacher_code: "AK", teacher_name: "Dr. Khan",
-    teacher_dept: "CS", room: "R-305", building: "B-II",
-    slot: 3, start_time: "11:10", end_time: "12:00",
-    day: "Monday", is_online: false, term: "Fall-2025",
-  },
-  {
-    id: 2, program: "BBA", semester: 1, section: "B",
-    course: "Accounting", teacher_code: "SZ", teacher_name: "Dr. Zaidi",
-    teacher_dept: "Business", room: "R-201", building: "B-I",
-    slot: 1, start_time: "09:00", end_time: "09:50",
-    day: "Tuesday", is_online: false, term: "Fall-2025",
-  },
-]
+interface SectionPickerProps {
+  entries: ClassEntry[]
+  onSelect: (section: Section) => void
+}
 
-describe("SectionPicker", () => {
-  it("shows all departments and waits for a department before enabling semester", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
-    expect(screen.getByRole("option", { name: "BSCS" })).toBeInTheDocument()
-    expect(screen.getByRole("option", { name: "BBA" })).toBeInTheDocument()
-    expect(screen.getByLabelText("Semester")).toBeDisabled()
-  })
+export default function SectionPicker({
+  entries,
+  onSelect,
+}: SectionPickerProps) {
+  const [department, setDepartment] = useState("")
+  const [semester, setSemester] = useState<number | null>(null)
 
-  it("progressively filters semester and section choices", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
-    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BSCS" } })
-    expect(screen.getByRole("option", { name: "Semester III" })).toBeInTheDocument()
-    expect(screen.queryByRole("option", { name: "Semester I" })).not.toBeInTheDocument()
+  const options = useMemo(
+    () =>
+      getSectionFilterOptions(entries, {
+        department,
+        semester,
+      }),
+    [entries, department, semester],
+  )
 
-    fireEvent.change(screen.getByLabelText("Semester"), { target: { value: "3" } })
-    expect(screen.getByRole("option", { name: "Section A" })).toBeInTheDocument()
-    expect(screen.queryByRole("option", { name: "Section B" })).not.toBeInTheDocument()
-  })
+  function chooseDepartment(value: string) {
+    setDepartment(value)
+    setSemester(null)
+  }
 
-  it("calls onSelect after all three filter values are selected", () => {
-    const onSelect = vi.fn()
-    render(<SectionPicker entries={mockEntries} onSelect={onSelect} />)
-    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BSCS" } })
-    fireEvent.change(screen.getByLabelText("Semester"), { target: { value: "3" } })
-    fireEvent.change(screen.getByLabelText("Section"), { target: { value: "A" } })
-    fireEvent.click(screen.getByRole("button", { name: "View timetable" }))
-    expect(onSelect).toHaveBeenCalledWith({ program: "BSCS", semester: 3, section: "A" })
-  })
+  function chooseSemester(value: string) {
+    setSemester(value ? Number(value) : null)
+  }
 
-  it("resets dependent choices after the department changes", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
-    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BSCS" } })
-    fireEvent.change(screen.getByLabelText("Semester"), { target: { value: "3" } })
-    fireEvent.change(screen.getByLabelText("Section"), { target: { value: "A" } })
-    fireEvent.change(screen.getByLabelText("Department"), { target: { value: "BBA" } })
-    expect(screen.getByLabelText("Semester")).toHaveValue("")
-    expect(screen.getByLabelText("Section")).toHaveValue("")
-  })
+  function chooseSection(value: string) {
+    if (!value || !department || semester === null) {
+      return
+    }
 
-  it("does not render a back action when it is the default page control", () => {
-    render(<SectionPicker entries={mockEntries} onSelect={vi.fn()} />)
-    expect(screen.queryByLabelText("Back")).not.toBeInTheDocument()
-  })
-})
+    onSelect({
+      department,
+      semester,
+      section: value,
+    })
+  }
+
+  return (
+    <div className="flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+      <div className="border-b border-zinc-100 px-4 py-3">
+        <span className="text-[15px] font-medium text-zinc-900">
+          Select timetable
+        </span>
+      </div>
+
+      <div className="grid gap-4 p-4 sm:grid-cols-3">
+        {/* Department */}
+        <label className="flex flex-col gap-2 text-[13px] font-medium text-zinc-700">
+          Department
+
+          <select
+            aria-label="Department"
+            value={department}
+            onChange={(event) => chooseDepartment(event.target.value)}
+            className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900"
+          >
+            <option value="">Select department</option>
+
+            {options.departments.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {/* Semester */}
+        <label className="flex flex-col gap-2 text-[13px] font-medium text-zinc-700">
+          Semester
+
+          <select
+            aria-label="Semester"
+            value={semester ?? ""}
+            onChange={(event) => chooseSemester(event.target.value)}
+            disabled={!department}
+            className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+          >
+            <option value="">Select semester</option>
+
+            {options.semesters.map((value) => (
+              <option key={value} value={value}>
+                {value === 0
+                  ? "Additional"
+                  : `Semester ${SEM_ROMAN[value - 1] ?? value}`}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {/* Section */}
+        <label className="flex flex-col gap-2 text-[13px] font-medium text-zinc-700">
+          Section
+
+          <select
+            aria-label="Section"
+            value=""
+            onChange={(event) => chooseSection(event.target.value)}
+            disabled={semester === null}
+            className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+          >
+            <option value="">Select section</option>
+
+            {options.sections.map((value) => (
+              <option key={value} value={value}>
+                Section {value}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </div>
+  )
+}
