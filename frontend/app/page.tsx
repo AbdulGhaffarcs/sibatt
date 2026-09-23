@@ -1,4 +1,3 @@
-// frontend/app/page.tsx
 // Root page — SIBATT is a timetable-only application.
 
 "use client"
@@ -76,74 +75,73 @@ export default function Home() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen flex-col bg-zinc-50 px-4">
-        <div className="flex flex-1 items-center justify-center">
-          <span className="text-sm text-zinc-500">
-            Loading timetable…
-          </span>
-        </div>
+      <>
+        <main className="flex min-h-screen flex-col bg-zinc-50 px-4 pb-20">
+          <div className="flex flex-1 items-center justify-center">
+            <span className="text-sm text-zinc-500">
+              Loading timetable…
+            </span>
+          </div>
+        </main>
 
-        <div className="pb-6 pt-10">
-          <CreatorsFooter />
-        </div>
-
+        <CreatorsFooter />
         <FeedbackButton />
-      </main>
+      </>
     )
   }
 
   if (error) {
     return (
-      <main className="flex min-h-screen flex-col bg-zinc-50 px-4">
-        <div className="flex flex-1 items-center justify-center">
-          <div className="text-center">
-            <p className="text-sm text-red-600">{error}</p>
+      <>
+        <main className="flex min-h-screen flex-col bg-zinc-50 px-4 pb-20">
+          <div className="flex flex-1 items-center justify-center">
+            <div className="text-center">
+              <p className="text-sm text-red-600">
+                {error}
+              </p>
 
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
-            >
-              Retry
-            </button>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+              >
+                Retry
+              </button>
+            </div>
           </div>
-        </div>
+        </main>
 
-        <div className="pb-6 pt-10">
-          <CreatorsFooter />
-        </div>
-
+        <CreatorsFooter />
         <FeedbackButton />
-      </main>
+      </>
     )
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-zinc-50 px-4">
-      <div className="flex w-full flex-1 flex-col items-center pt-8 sm:px-2 sm:pt-10">
-        <div className="flex w-full max-w-3xl flex-col items-center gap-6">
-          {section ? (
-            <DayView
-              section={section}
-              entries={sectionEntries}
-              onChangeSection={() => setSection(null)}
-              activeDay={timetableDay ?? undefined}
-              onChangeDay={setTimetableDay}
-            />
-          ) : (
-            <SectionPicker
-              entries={entries}
-              onSelect={setSection}
-            />
-          )}
+    <>
+      <main className="flex min-h-screen flex-col bg-zinc-50 px-4 pb-20">
+        <div className="flex w-full flex-1 flex-col items-center pt-8 sm:px-2 sm:pt-10">
+          <div className="flex w-full max-w-3xl flex-col items-center gap-6">
+            {section ? (
+              <DayView
+                section={section}
+                entries={sectionEntries}
+                onChangeSection={() => setSection(null)}
+                activeDay={timetableDay ?? undefined}
+                onChangeDay={setTimetableDay}
+              />
+            ) : (
+              <SectionPicker
+                entries={entries}
+                onSelect={setSection}
+              />
+            )}
+          </div>
         </div>
-      </div>
+      </main>
 
-      <div className="w-full pb-20 pt-12 sm:pb-8">
-        <CreatorsFooter />
-      </div>
-
+      <CreatorsFooter />
       <FeedbackButton />
-    </main>
+    </>
   )
 }

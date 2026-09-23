@@ -1,4 +1,3 @@
-// frontend/components/ui/FeedbackButton.tsx
 // Floating feedback button for SIBATT.
 
 "use client"
@@ -69,7 +68,7 @@ export default function FeedbackButton() {
           setOpen(true)
           setStatus("idle")
         }}
-        className="fixed bottom-4 right-4 z-50 rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 sm:bottom-5 sm:right-5"
+        className="fixed bottom-[calc(2.5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex min-h-10 items-center justify-center rounded-full bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition-transform hover:scale-105 hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 sm:right-5"
       >
         Feedback
       </button>
