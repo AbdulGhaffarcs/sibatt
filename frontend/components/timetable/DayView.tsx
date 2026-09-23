@@ -9,7 +9,6 @@ import type { Section } from "@/lib/filters"
 import ClassCard from "@/components/timetable/ClassCard"
 import DaySelector, { type Day } from "@/components/timetable/DaySelector"
 import { SEM_ROMAN, DAY_FULL } from "@/lib/constants"
-import { deduplicateEntries } from "@/lib/search"
 
 function todayKey(): Day {
   const keys: Day[] = ["Mo", "Tu", "We", "Th", "Fr"]
@@ -23,6 +22,38 @@ function minutesSinceMidnight(date: Date): number {
 function timeToMinutes(time: string): number {
   const [hours, minutes] = time.split(":").map(Number)
   return hours * 60 + minutes
+}
+
+function deduplicateEntries<T extends ClassEntry>(
+  entries: T[],
+): T[] {
+  const seen = new Set<string>()
+
+  return entries.filter((entry) => {
+    const key = [
+      entry.day,
+      entry.slot,
+      entry.start_time,
+      entry.end_time,
+      entry.course,
+      entry.teacher_code,
+      entry.teacher_name,
+      entry.teacher_dept,
+      entry.room,
+      entry.building,
+      entry.section,
+      entry.semester,
+      entry.term,
+      entry.is_online,
+    ].join("\u001f")
+
+    if (seen.has(key)) {
+      return false
+    }
+
+    seen.add(key)
+    return true
+  })
 }
 
 function canMergeEntries(
@@ -91,9 +122,8 @@ export default function DayView({
   activeDay: controlledDay,
   onChangeDay,
 }: DayViewProps) {
-  const [localDay, setLocalDay] = useState<Day>(
-    todayKey(),
-  )
+  const [localDay, setLocalDay] = useState<Day>(todayKey())
+
   const activeDay = controlledDay ?? localDay
   const setActiveDay = onChangeDay ?? setLocalDay
 
@@ -129,9 +159,7 @@ export default function DayView({
 
   const nextIdx = isViewingToday
     ? displayEntries.findIndex((entry) => {
-        const startMinutes = timeToMinutes(
-          entry.start_time,
-        )
+        const startMinutes = timeToMinutes(entry.start_time)
 
         return (
           nowMinutes >= startMinutes - 5 &&
@@ -142,13 +170,8 @@ export default function DayView({
 
   const currentIdx = isViewingToday
     ? displayEntries.findIndex((entry) => {
-        const startMinutes = timeToMinutes(
-          entry.start_time,
-        )
-
-        const endMinutes = timeToMinutes(
-          entry.end_time,
-        )
+        const startMinutes = timeToMinutes(entry.start_time)
+        const endMinutes = timeToMinutes(entry.end_time)
 
         return (
           nowMinutes >= startMinutes &&
@@ -159,7 +182,6 @@ export default function DayView({
 
   return (
     <div className="flex w-full max-w-xl flex-col gap-4">
-      {/* section header */}
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="truncate font-mono text-[11px] uppercase tracking-widest text-zinc-400">
@@ -169,26 +191,28 @@ export default function DayView({
           <div className="truncate text-[18px] font-semibold leading-tight text-zinc-900">
             {section.semester === 0
               ? "Additional"
-              : `Sem ${SEM_ROMAN[section.semester - 1] ?? section.semester}`}
+              : `Sem ${
+                  SEM_ROMAN[section.semester - 1] ??
+                  section.semester
+                }`}
             {" "}— Section {section.section}
           </div>
         </div>
 
         <button
+          type="button"
           onClick={onChangeSection}
-          className="flex-none rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] text-zinc-600 hover:bg-zinc-100"
+          className="flex-none rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[12px] text-zinc-600 transition-colors hover:bg-zinc-100"
         >
           Change
         </button>
       </div>
 
-      {/* day selector */}
       <DaySelector
         active={activeDay}
         onChange={setActiveDay}
       />
 
-      {/* class cards */}
       <div className="flex flex-col gap-2">
         {displayEntries.map((entry, index) => (
           <ClassCard
