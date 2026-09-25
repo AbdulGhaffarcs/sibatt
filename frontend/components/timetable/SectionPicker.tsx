@@ -22,6 +22,7 @@ export default function SectionPicker({
 }: SectionPickerProps) {
   const [department, setDepartment] = useState("")
   const [semester, setSemester] = useState<number | null>(null)
+  const [section, setSection] = useState("")
 
   const options = useMemo(
     () =>
@@ -35,21 +36,23 @@ export default function SectionPicker({
   function chooseDepartment(value: string) {
     setDepartment(value)
     setSemester(null)
+    setSection("")
   }
 
   function chooseSemester(value: string) {
     setSemester(value ? Number(value) : null)
+    setSection("")
   }
 
-  function chooseSection(value: string) {
-    if (!value || !department || semester === null) {
+  function handleConfirm() {
+    if (!section || !department || semester === null) {
       return
     }
 
     onSelect({
       department,
       semester,
-      section: value,
+      section,
     })
   }
 
@@ -111,8 +114,8 @@ export default function SectionPicker({
 
           <select
             aria-label="Section"
-            value=""
-            onChange={(event) => chooseSection(event.target.value)}
+            value={section}
+            onChange={(event) => setSection(event.target.value)}
             disabled={semester === null}
             className="h-11 rounded-lg border border-zinc-300 bg-white px-3 text-[14px] font-normal text-zinc-900 outline-none focus:border-zinc-900 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
           >
@@ -125,6 +128,17 @@ export default function SectionPicker({
             ))}
           </select>
         </label>
+      </div>
+
+      <div className="flex justify-end border-t border-zinc-100 px-4 py-3">
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={!section || !department || semester === null}
+          className="h-11 rounded-lg bg-zinc-900 px-5 text-[14px] font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+        >
+          Confirm
+        </button>
       </div>
     </div>
   )
