@@ -4,7 +4,6 @@
 /** Only timetables from this academic year are shown. */
 export const ACTIVE_YEAR = 2026
 export const ACTIVE_TERM = "Fall 2026"
-export const TERM_START_DATE = "21 September 2026"
 
 
 export const SEM_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"] as const
