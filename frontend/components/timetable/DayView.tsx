@@ -8,7 +8,12 @@ import type { ClassEntry } from "@/components/timetable/ClassCard"
 import type { Section } from "@/lib/filters"
 import ClassCard from "@/components/timetable/ClassCard"
 import DaySelector, { type Day } from "@/components/timetable/DaySelector"
-import { SEM_ROMAN, DAY_FULL } from "@/lib/constants"
+import {
+  ACTIVE_TERM,
+  DAY_FULL,
+  SEM_ROMAN,
+  TERM_START_DATE,
+} from "@/lib/constants"
 
 function todayKey(): Day {
   const keys: Day[] = ["Mo", "Tu", "We", "Th", "Fr"]
@@ -186,6 +191,10 @@ export default function DayView({
         <div className="min-w-0">
           <div className="truncate font-mono text-[11px] uppercase tracking-widest text-zinc-400">
             {section.department}
+          </div>
+
+          <div className="text-[11px] text-zinc-500">
+            {ACTIVE_TERM} · {TERM_START_DATE}
           </div>
 
           <div className="truncate text-[18px] font-semibold leading-tight text-zinc-900">

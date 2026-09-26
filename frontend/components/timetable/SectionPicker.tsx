@@ -9,7 +9,11 @@ import {
   getSectionFilterOptions,
   type Section,
 } from "@/lib/filters"
-import { SEM_ROMAN } from "@/lib/constants"
+import {
+  ACTIVE_TERM,
+  SEM_ROMAN,
+  TERM_START_DATE,
+} from "@/lib/constants"
 
 interface SectionPickerProps {
   entries: ClassEntry[]
@@ -59,9 +63,14 @@ export default function SectionPicker({
   return (
     <div className="flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white">
       <div className="border-b border-zinc-100 px-4 py-3">
-        <span className="text-[15px] font-medium text-zinc-900">
-          Select timetable
-        </span>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[15px] font-medium text-zinc-900">
+            Select timetable
+          </span>
+          <span className="text-right text-[11px] text-zinc-500">
+            {ACTIVE_TERM} · {TERM_START_DATE}
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-4 p-4 sm:grid-cols-3">
