@@ -12,7 +12,6 @@ import {
 import {
   ACTIVE_TERM,
   SEM_ROMAN,
-  TERM_START_DATE,
 } from "@/lib/constants"
 
 interface SectionPickerProps {
@@ -68,7 +67,7 @@ export default function SectionPicker({
             Select timetable
           </span>
           <span className="text-right text-[11px] text-zinc-500">
-            {ACTIVE_TERM} · {TERM_START_DATE}
+            {ACTIVE_TERM}
           </span>
         </div>
       </div>
