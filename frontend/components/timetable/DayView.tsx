@@ -9,10 +9,8 @@ import type { Section } from "@/lib/filters"
 import ClassCard from "@/components/timetable/ClassCard"
 import DaySelector, { type Day } from "@/components/timetable/DaySelector"
 import {
-  ACTIVE_TERM,
   DAY_FULL,
   SEM_ROMAN,
-  TERM_START_DATE,
 } from "@/lib/constants"
 
 function todayKey(): Day {
