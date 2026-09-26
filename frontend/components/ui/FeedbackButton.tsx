@@ -122,12 +122,13 @@ export default function FeedbackButton() {
               />
 
               <input
+                required
                 type="email"
                 value={email}
                 onChange={(event) =>
                   setEmail(event.target.value)
                 }
-                placeholder="Email for a reply (optional)"
+                placeholder="Email for a reply "
                 className="h-10 w-full rounded-xl border border-zinc-300 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-400 focus:border-zinc-900"
               />
 

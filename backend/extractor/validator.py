@@ -963,7 +963,12 @@ def classify_cells(
                 if text_section in sections_from_header
                 else sections_from_header[0]
             )
-            if section_letter == sections_from_header[0] and len(sections_from_header) > 1:
+            if (
+                section_letter == sections_from_header[0]
+                and len(sections_from_header) > 1
+                and marker_section not in sections_from_header
+                and text_section not in sections_from_header
+            ):
                 # When a source cell has no usable marker, its vertical
                 # position within the day's divided row identifies the
                 # section (top C / bottom D, etc.).
