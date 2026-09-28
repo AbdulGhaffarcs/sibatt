@@ -25,3 +25,10 @@ Thumbs.db
 logs/
 *.log
 fall2025.pdf
+
+
+# Add this to .gitignore
+data/faculty.json
+
+Fall2026Teacherwise.pdf
+.env.local
