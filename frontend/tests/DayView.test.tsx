@@ -190,6 +190,15 @@ describe("DayView", () => {
     expect(screen.queryByText("Up next")).not.toBeInTheDocument()
   })
 
+  it("does not mark Monday classes as current on weekends", () => {
+    vi.setSystemTime(new Date("2025-09-20T11:30:00"))
+
+    renderDayView()
+
+    expect(screen.queryByText("Current")).not.toBeInTheDocument()
+    expect(screen.queryByText("Up next")).not.toBeInTheDocument()
+  })
+
   it("renders the Change action", () => {
     renderDayView()
 

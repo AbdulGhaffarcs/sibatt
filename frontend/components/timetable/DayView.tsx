@@ -9,13 +9,18 @@ import type { Section } from "@/lib/filters"
 import ClassCard from "@/components/timetable/ClassCard"
 import DaySelector, { type Day } from "@/components/timetable/DaySelector"
 import {
+  ACTIVE_TERM,
   DAY_FULL,
   SEM_ROMAN,
 } from "@/lib/constants"
 
-function todayKey(): Day {
-  const keys: Day[] = ["Mo", "Tu", "We", "Th", "Fr"]
-  return keys[new Date().getDay() - 1] ?? "Mo"
+function todayKey(): Day | null {
+  const keys: Array<Day | null> = [null, "Mo", "Tu", "We", "Th", "Fr", null]
+  return keys[new Date().getDay()]
+}
+
+function initialDay(): Day {
+  return todayKey() ?? "Mo"
 }
 
 function minutesSinceMidnight(date: Date): number {
@@ -125,7 +130,7 @@ export default function DayView({
   activeDay: controlledDay,
   onChangeDay,
 }: DayViewProps) {
-  const [localDay, setLocalDay] = useState<Day>(todayKey())
+  const [localDay, setLocalDay] = useState<Day>(initialDay())
 
   const activeDay = controlledDay ?? localDay
   const setActiveDay = onChangeDay ?? setLocalDay
@@ -157,7 +162,8 @@ export default function DayView({
     [dayEntries],
   )
 
-  const isViewingToday = activeDay === todayKey()
+  const currentDay = todayKey()
+  const isViewingToday = currentDay !== null && activeDay === currentDay
   const nowMinutes = minutesSinceMidnight(now)
 
   const nextIdx = isViewingToday
@@ -192,7 +198,7 @@ export default function DayView({
           </div>
 
           <div className="text-[11px] text-zinc-500">
-            {ACTIVE_TERM} · {TERM_START_DATE}
+            {ACTIVE_TERM}
           </div>
 
           <div className="truncate text-[18px] font-semibold leading-tight text-zinc-900">
