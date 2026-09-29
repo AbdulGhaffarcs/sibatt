@@ -1,5 +1,5 @@
 const creators = [
-  { name: "Ghaffar", url: "https://github.com/AbdulGhaffarcs" },
+  { name: "Ghaffar", url: "https://abdulghaffarcs.vercel.app" },
   { name: "Qasim", url: "https://qasimio.me" },
 ]
 
