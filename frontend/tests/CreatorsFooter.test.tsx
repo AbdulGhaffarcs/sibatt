@@ -13,7 +13,7 @@ describe("CreatorsFooter", () => {
     )
     expect(screen.getByRole("link", { name: "Qasim" })).toHaveAttribute(
       "href",
-      "https://github.com/qasimio",
+      "https://qasimio.me",
     )
   })
 })

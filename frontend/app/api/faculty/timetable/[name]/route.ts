@@ -1,6 +1,5 @@
+import { getFacultyData } from "@/lib/faculty-data"
 import { NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
 
 function isAuthenticated(req: NextRequest) {
   const token = req.cookies.get("faculty_token")?.value
@@ -18,15 +17,13 @@ export async function GET(
   const teacherName = decodeURIComponent(params.name)
 
   try {
-    const filePath = path.resolve(process.cwd(), "..", "data", "faculty.json")
-    const raw = fs.readFileSync(filePath, "utf-8")
-    const data = JSON.parse(raw)
+    const data = await getFacultyData()
 
     const normalizedName = teacherName.trim().toLowerCase()
     const teacher = data.find(
-      (t: any) => t.teacher.toLowerCase() === normalizedName
+      (t) => t.teacher.toLowerCase() === normalizedName
     ) || data.find(
-      (t: any) => t.teacher.toLowerCase().includes(normalizedName)
+      (t) => t.teacher.toLowerCase().includes(normalizedName)
     )
 
     if (!teacher) {

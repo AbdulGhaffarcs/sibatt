@@ -32,3 +32,5 @@ data/faculty.json
 
 Fall2026Teacherwise.pdf
 .env.local
+.vercel
+.env*
