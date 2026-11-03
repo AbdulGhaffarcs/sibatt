@@ -30,6 +30,7 @@ export default function Home() {
   const [section, setSection] = useState<Section | null>(
     saved.section ?? null,
   )
+  const [isChangingSection, setIsChangingSection] = useState(false)
   const [timetableDay, setTimetableDay] = useState<Day | null>(
     saved.timetableDay ?? null,
   )
@@ -122,18 +123,22 @@ export default function Home() {
       <main className="flex min-h-screen flex-col bg-zinc-50 px-4 pb-20">
         <div className="flex w-full flex-1 flex-col items-center pt-8 sm:px-2 sm:pt-10">
           <div className="flex w-full max-w-3xl flex-col items-center gap-6">
-            {section ? (
+            {section && !isChangingSection ? (
               <DayView
                 section={section}
                 entries={sectionEntries}
-                onChangeSection={() => setSection(null)}
+                onChangeSection={() => setIsChangingSection(true)}
                 activeDay={timetableDay ?? undefined}
                 onChangeDay={setTimetableDay}
               />
             ) : (
               <SectionPicker
                 entries={entries}
-                onSelect={setSection}
+                initialSection={section}
+                onSelect={(nextSection) => {
+                  setSection(nextSection)
+                  setIsChangingSection(false)
+                }}
               />
             )}
           </div>

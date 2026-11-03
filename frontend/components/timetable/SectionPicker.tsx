@@ -17,15 +17,21 @@ import {
 interface SectionPickerProps {
   entries: ClassEntry[]
   onSelect: (section: Section) => void
+  initialSection?: Section | null
 }
 
 export default function SectionPicker({
   entries,
   onSelect,
+  initialSection = null,
 }: SectionPickerProps) {
-  const [department, setDepartment] = useState("")
-  const [semester, setSemester] = useState<number | null>(null)
-  const [section, setSection] = useState("")
+  const [department, setDepartment] = useState(
+    initialSection?.department ?? "",
+  )
+  const [semester, setSemester] = useState<number | null>(
+    initialSection?.semester ?? null,
+  )
+  const [section, setSection] = useState(initialSection?.section ?? "")
 
   const options = useMemo(
     () =>

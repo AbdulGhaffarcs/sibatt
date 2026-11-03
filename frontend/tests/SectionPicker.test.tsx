@@ -93,6 +93,30 @@ describe("SectionPicker", () => {
     expect(departmentSelect).toHaveValue("")
   })
 
+  it("prefills the current selection when changing a timetable", () => {
+    render(
+      <SectionPicker
+        entries={mockEntries}
+        initialSection={{
+          department: "CS",
+          semester: 3,
+          section: "A",
+        }}
+        onSelect={vi.fn()}
+      />,
+    )
+
+    expect(
+      screen.getByRole("combobox", { name: "Department" }),
+    ).toHaveValue("CS")
+    expect(
+      screen.getByRole("combobox", { name: "Semester" }),
+    ).toHaveValue("3")
+    expect(
+      screen.getByRole("combobox", { name: "Section" }),
+    ).toHaveValue("A")
+  })
+
   it("progressively filters semesters by department", () => {
     render(
       <SectionPicker
@@ -165,7 +189,7 @@ describe("SectionPicker", () => {
     ).not.toBeInTheDocument()
   })
 
-  it("selecting a section immediately calls onSelect", () => {
+  it("confirms the selected section", () => {
     const onSelect = vi.fn()
 
     render(
@@ -198,6 +222,8 @@ describe("SectionPicker", () => {
     fireEvent.change(sectionSelect, {
       target: { value: "A" },
     })
+
+    fireEvent.click(screen.getByRole("button", { name: "Confirm" }))
 
     expect(onSelect).toHaveBeenCalledTimes(1)
 
